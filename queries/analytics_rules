@@ -1,2 +1,174 @@
-scheduled-brute-force-rule.kql
-optimized-brute-force-rule.kql
+# Analytics Rules
+
+> *Analytics Rules are the core detection mechanism in Microsoft Sentinel, converting KQL queries into automated security alerts.*
+
+---
+
+# Overview
+
+Analytics Rules continuously evaluate security telemetry to identify suspicious or malicious activity. They automate threat detection by executing Kusto Query Language (KQL) queries on a scheduled basis and generating alerts when defined conditions are met.
+
+Effective Analytics Rules combine accurate detection logic, appropriate thresholds, entity mapping, and alert tuning to minimize false positives while ensuring important security events are detected.
+
+This section demonstrates how the SSH brute-force detection developed throughout this handbook is deployed as a Scheduled Analytics Rule.
+
+---
+
+# Objectives
+
+This section demonstrates how to:
+
+- Create a Scheduled Analytics Rule
+- Configure query frequency and lookup period
+- Define alert thresholds
+- Map security entities
+- Classify alert severity
+- Reduce false positives
+- Generate actionable incidents
+
+---
+
+# Analytics Rule Workflow
+
+```
+Log Collection
+      │
+      ▼
+KQL Query
+      │
+      ▼
+Scheduled Analytics Rule
+      │
+      ▼
+Alert Generation
+      │
+      ▼
+Incident Creation
+      │
+      ▼
+SOC Investigation
+```
+
+---
+
+# Rule Name
+
+**SSH Brute Force Detection**
+
+---
+
+# Detection Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize FailedAttempts = count() by SourceIP
+| where FailedAttempts >= 5
+| order by FailedAttempts desc
+```
+
+---
+
+# Rule Configuration
+
+| Setting | Value |
+|---------|-------|
+| Rule Type | Scheduled |
+| Query Frequency | Every 5 Minutes |
+| Lookup Period | Last 1 Hour |
+| Trigger Condition | Greater than 0 Results |
+| Severity | Medium |
+| Status | Enabled |
+
+---
+
+# Entity Mapping
+
+Proper entity mapping allows Microsoft Sentinel to correlate alerts across incidents.
+
+| Entity | Field |
+|---------|-------|
+| IP Address | SourceIP |
+
+Additional mappings such as Host, Account, or URL can be configured depending on the available telemetry.
+
+---
+
+# Alert Details
+
+| Property | Example |
+|----------|---------|
+| Alert Name | SSH Brute Force Attempt Detected |
+| Severity | Medium |
+| MITRE Technique | T1110 |
+| Description | Multiple failed SSH authentication attempts detected from the same source IP address. |
+
+---
+
+# Rule Tuning
+
+Detection tuning is essential for reducing false positives while maintaining visibility into genuine threats.
+
+Common tuning techniques include:
+
+- Adjusting failed login thresholds
+- Excluding trusted administrative IP addresses
+- Filtering scheduled maintenance windows
+- Limiting detections to internet-facing systems
+- Reviewing historical authentication patterns
+
+Analytics Rules should be reviewed regularly to ensure they remain effective as the environment evolves.
+
+---
+
+# Incident Lifecycle
+
+```
+Authentication Logs
+        │
+        ▼
+Analytics Rule Executes
+        │
+        ▼
+Alert Generated
+        │
+        ▼
+Incident Created
+        │
+        ▼
+SOC Investigation
+        │
+        ▼
+Containment & Remediation
+```
+
+---
+
+# MITRE ATT&CK Mapping
+
+| Technique | Description |
+|-----------|-------------|
+| T1110 | Brute Force |
+| T1078 | Valid Accounts (Potential Follow-on) |
+
+---
+
+# Best Practices
+
+- Start with simple detection logic before increasing complexity.
+- Validate queries using historical log data.
+- Tune thresholds to reduce unnecessary alerts.
+- Use entity mapping for improved investigation.
+- Map detections to the MITRE ATT&CK framework.
+- Review detection performance regularly and refine rules as needed.
+
+---
+
+# Key Takeaways
+
+- Analytics Rules automate threat detection using KQL.
+- Well-designed rules balance detection accuracy and operational efficiency.
+- Entity mapping enhances investigation and incident correlation.
+- Regular tuning reduces false positives and alert fatigue.
+- Effective Analytics Rules are the foundation of a mature Microsoft Sentinel SOC.
