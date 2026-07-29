@@ -1,0 +1,389 @@
+# Chapter 7: Kusto Query Language (KQL)
+
+> *Mastering the query language that powers Microsoft Sentinel, Azure Monitor, and Azure Log Analytics.*
+
+---
+
+# Overview
+
+Security Operations Centers (SOCs) generate massive amounts of telemetry every day. Authentication events, firewall logs, endpoint detections, cloud activities, and application logs are continuously collected into Azure Log Analytics Workspace. While collecting this data is important, it has little value unless analysts can efficiently search, filter, correlate, and interpret it.
+
+Kusto Query Language (KQL) is the primary language used to query and analyze data stored in Azure Monitor, Azure Data Explorer, Microsoft Defender, and Microsoft Sentinel. It enables security analysts to investigate incidents, hunt for threats, validate detections, and build analytics rules.
+
+Unlike traditional SQL, which is designed for transactional databases, KQL is optimized for analyzing large volumes of time-series and log data. Its syntax is designed to be readable, efficient, and well suited for security investigations.
+
+In Microsoft Sentinel, every hunting query, analytics rule, workbook, and investigation begins with KQL.
+
+---
+
+# What is KQL?
+
+Kusto Query Language (KQL) is a read-only query language used to search and analyze structured and semi-structured telemetry stored in Azure Log Analytics Workspace.
+
+KQL allows analysts to:
+
+- Search security logs
+- Filter relevant events
+- Parse unstructured data
+- Aggregate results
+- Correlate events
+- Detect attack patterns
+- Build dashboards
+- Create detection rules
+
+Unlike SQL, KQL does not modify data. It is designed for high-performance analytics rather than transactional operations.
+
+---
+
+# Why KQL is Important
+
+Every SOC analyst working with Microsoft Sentinel relies on KQL daily.
+
+Common use cases include:
+
+- Investigating failed logins
+- Identifying brute-force attacks
+- Detecting privilege escalation
+- Searching endpoint activity
+- Finding suspicious PowerShell execution
+- Correlating user activity across multiple systems
+- Building custom detections
+- Validating log ingestion
+
+Strong KQL skills enable analysts to investigate incidents more efficiently and reduce response times.
+
+---
+
+# KQL Query Structure
+
+A KQL query typically follows a pipeline model.
+
+```kusto
+TableName
+| Operator
+| Operator
+| Operator
+```
+
+Each operator processes the output of the previous step.
+
+Example:
+
+```kusto
+SecurityEvent
+| where EventID == 4625
+| summarize FailedLogins = count() by Account
+| order by FailedLogins desc
+```
+
+---
+
+# Understanding Tables
+
+All data in Log Analytics Workspace is stored in tables.
+
+Examples include:
+
+| Table | Description |
+|--------|-------------|
+| SecurityEvent | Windows security logs |
+| Syslog | Linux system logs |
+| AzureActivity | Azure administrative events |
+| SigninLogs | Microsoft Entra ID sign-ins |
+| Heartbeat | Agent health |
+| CommonSecurityLog | Firewall events |
+| MeridianLogs_CL | Custom authentication logs (Project) |
+
+Each row represents an event, while columns describe the event's attributes.
+
+---
+
+# Essential KQL Operators
+
+## where
+
+Filters records that meet specific conditions.
+
+Example:
+
+```kusto
+MeridianLogs_CL
+| where RawData contains "Failed password"
+```
+
+---
+
+## project
+
+Selects specific columns.
+
+```kusto
+MeridianLogs_CL
+| project TimeGenerated, Computer, RawData
+```
+
+---
+
+## extend
+
+Creates calculated columns.
+
+```kusto
+MeridianLogs_CL
+| extend SourceIP = extract(@"from ([0-9.]+)", 1, RawData)
+```
+
+---
+
+## summarize
+
+Aggregates data.
+
+```kusto
+MeridianLogs_CL
+| summarize Attempts = count() by Computer
+```
+
+---
+
+## sort / order by
+
+Sorts results.
+
+```kusto
+MeridianLogs_CL
+| summarize Attempts = count() by Computer
+| order by Attempts desc
+```
+
+---
+
+## top
+
+Returns the highest-ranking records.
+
+```kusto
+MeridianLogs_CL
+| summarize Attempts = count() by Computer
+| top 5 by Attempts
+```
+
+---
+
+## distinct
+
+Returns unique values.
+
+```kusto
+MeridianLogs_CL
+| distinct Computer
+```
+
+---
+
+## take
+
+Returns a sample of records.
+
+```kusto
+MeridianLogs_CL
+| take 10
+```
+
+---
+
+# Working with Time
+
+Time is critical during investigations.
+
+Example:
+
+```kusto
+MeridianLogs_CL
+| where TimeGenerated > ago(24h)
+```
+
+Other examples:
+
+```kusto
+ago(1h)
+ago(7d)
+ago(30d)
+```
+
+---
+
+# String Searching
+
+Common operators include:
+
+```kusto
+contains
+has
+startswith
+endswith
+matches regex
+```
+
+Example:
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed"
+```
+
+---
+
+# Parsing Log Data
+
+Many security logs contain valuable information within text fields.
+
+Example log:
+
+```
+Failed password for invalid user admin from 203.0.113.77 port 22 ssh2
+```
+
+Extract the source IP:
+
+```kusto
+MeridianLogs_CL
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+```
+
+Extract usernames:
+
+```kusto
+MeridianLogs_CL
+| extend Username = extract(@"user ([a-zA-Z0-9_-]+)",1,RawData)
+```
+
+Parsing transforms raw text into structured fields that can be used in detections and investigations.
+
+---
+
+# Aggregating Events
+
+Analysts often summarize activity to identify patterns.
+
+Example:
+
+```kusto
+MeridianLogs_CL
+| summarize FailedAttempts = count() by SourceIP
+```
+
+This query helps identify systems generating excessive authentication failures.
+
+---
+
+# Building Detection Logic
+
+A common brute-force detection might be:
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize Attempts = count() by SourceIP
+| where Attempts > 5
+| order by Attempts desc
+```
+
+This logic can be used directly in a Microsoft Sentinel Analytics Rule.
+
+---
+
+# Investigation Workflow
+
+A typical investigation using KQL follows these steps:
+
+1. Identify the relevant table.
+2. Limit the time range.
+3. Filter suspicious events.
+4. Parse important fields.
+5. Aggregate activity.
+6. Correlate related events.
+7. Validate findings.
+8. Document conclusions.
+
+---
+
+# Performance Best Practices
+
+Efficient queries improve investigation speed and reduce resource usage.
+
+Recommendations:
+
+- Filter data early using `where`.
+- Limit time ranges with `ago()`.
+- Select only required columns using `project`.
+- Avoid unnecessary wildcard searches.
+- Use `summarize` instead of manual counting.
+- Test queries on smaller datasets before running them across large environments.
+
+---
+
+# Common Mistakes
+
+Avoid these common issues:
+
+- Searching all historical data without a time filter.
+- Returning unnecessary columns.
+- Using broad text searches that increase execution time.
+- Ignoring null or empty values.
+- Building detections without validating query results.
+
+---
+
+# Lab Mapping
+
+During this project, KQL was used to:
+
+- Validate custom log ingestion.
+- Query the `MeridianLogs_CL` table.
+- Identify failed SSH authentication attempts.
+- Extract source IP addresses using regular expressions.
+- Count repeated login failures.
+- Build detection logic for Analytics Rules.
+- Support threat hunting and incident investigations.
+
+Representative queries included:
+
+```kusto
+MeridianLogs_CL
+| take 10
+```
+
+```kusto
+MeridianLogs_CL
+| count
+```
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize Attempts = count() by SourceIP
+| where Attempts > 5
+```
+
+These examples demonstrate how KQL transforms raw authentication logs into actionable security insights.
+
+---
+
+# Key Takeaways
+
+- KQL is the primary language used for searching and analyzing telemetry in Microsoft Sentinel.
+- Every investigation begins with understanding the relevant data tables.
+- Operators such as `where`, `project`, `extend`, and `summarize` form the foundation of most security queries.
+- Parsing and aggregation enable analysts to transform raw logs into meaningful detections.
+- Efficient KQL queries improve investigation speed and support high-quality detection engineering.
+
+---
+
+# Chapter Summary
+
+Kusto Query Language (KQL) is one of the most valuable skills for Microsoft Sentinel engineers. It enables analysts to search, filter, parse, and correlate security events stored in Azure Log Analytics Workspace. Mastering KQL is essential for threat hunting, detection engineering, incident investigation, and operational efficiency within a modern Security Operations Center.
+
+In the next chapter, we will apply these KQL concepts to **Threat Hunting**, where we will use real-world investigation techniques to identify suspicious behavior and uncover potential security threats.
