@@ -1,0 +1,6 @@
+failed-ssh-logins.kql
+top-attacking-ips.kql
+authentication-summary.kql
+successful-logins.kql
+user-activity-summary.kql
+suspicious-ip-analysis.kql
