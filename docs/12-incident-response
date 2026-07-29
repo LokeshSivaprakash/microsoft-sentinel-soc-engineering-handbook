@@ -1,0 +1,332 @@
+# Chapter 12: Incident Response
+
+> *Containing, eradicating, recovering from, and learning from security incidents using Microsoft Sentinel.*
+
+---
+
+# Overview
+
+The ultimate goal of a Security Operations Center (SOC) is not only to detect threats but also to respond to them effectively. Once an incident has been investigated and confirmed, organizations must act quickly to limit damage, remove the threat, restore normal operations, and prevent similar incidents from occurring again.
+
+Incident response is a structured process that guides security teams through the lifecycle of handling cybersecurity events. A disciplined response minimizes business disruption, reduces attacker dwell time, preserves forensic evidence, and improves organizational resilience.
+
+Microsoft Sentinel supports incident response by combining incident management, automation, threat intelligence, and integration with external response tools. These capabilities enable analysts to coordinate investigations and execute containment actions efficiently.
+
+In this project, incident response focused on addressing repeated SSH authentication failures that were consistent with a brute-force attack.
+
+---
+
+# What is Incident Response?
+
+Incident response is the organized process of identifying, containing, eradicating, recovering from, and documenting cybersecurity incidents.
+
+The objectives are to:
+
+- Minimize business impact.
+- Prevent additional compromise.
+- Preserve evidence.
+- Restore normal operations.
+- Improve future detection and response.
+
+A well-defined incident response process ensures that security teams react consistently under pressure.
+
+---
+
+# Incident Response Lifecycle
+
+The widely adopted lifecycle consists of six phases.
+
+```
+Preparation
+      │
+      ▼
+Identification
+      │
+      ▼
+Containment
+      │
+      ▼
+Eradication
+      │
+      ▼
+Recovery
+      │
+      ▼
+Lessons Learned
+```
+
+Each phase contributes to reducing organizational risk and strengthening future defenses.
+
+---
+
+# Phase 1 – Preparation
+
+Preparation occurs before an incident takes place.
+
+Key activities include:
+
+- Developing incident response procedures.
+- Defining roles and responsibilities.
+- Maintaining asset inventories.
+- Collecting security telemetry.
+- Configuring Microsoft Sentinel.
+- Creating Analytics Rules.
+- Testing Playbooks and automation.
+- Conducting tabletop exercises.
+
+Organizations with strong preparation typically respond faster and more effectively during real incidents.
+
+---
+
+# Phase 2 – Identification
+
+Identification determines whether suspicious activity represents a genuine security incident.
+
+Analysts review:
+
+- Security alerts.
+- KQL query results.
+- Threat intelligence.
+- User activity.
+- Endpoint telemetry.
+- Authentication logs.
+
+In this project, repeated failed SSH authentication attempts triggered an Analytics Rule, initiating the investigation.
+
+---
+
+# Phase 3 – Containment
+
+Containment limits the attacker's ability to continue malicious activity while preserving evidence for investigation.
+
+Examples include:
+
+- Blocking malicious IP addresses.
+- Disabling compromised user accounts.
+- Isolating affected systems.
+- Revoking active sessions.
+- Restricting privileged access.
+- Updating firewall rules.
+
+Containment should balance reducing risk with maintaining critical business operations.
+
+---
+
+# Phase 4 – Eradication
+
+After containment, security teams remove the root cause of the incident.
+
+Common eradication activities include:
+
+- Removing malware.
+- Deleting unauthorized accounts.
+- Closing exploited vulnerabilities.
+- Applying security patches.
+- Rotating credentials.
+- Removing persistence mechanisms.
+- Validating system integrity.
+
+The objective is to ensure the attacker no longer has access.
+
+---
+
+# Phase 5 – Recovery
+
+Recovery restores affected systems to normal operations while ensuring they are safe to return to production.
+
+Typical recovery activities include:
+
+- Restoring services.
+- Monitoring for recurring activity.
+- Verifying system functionality.
+- Confirming security controls.
+- Re-enabling user access.
+- Validating successful remediation.
+
+Recovery should be gradual and closely monitored to detect any signs of reinfection or continued compromise.
+
+---
+
+# Phase 6 – Lessons Learned
+
+Every incident provides an opportunity to improve.
+
+Post-incident reviews should answer:
+
+- How was the attack detected?
+- What worked well?
+- What delays occurred?
+- Were detections effective?
+- Were response procedures followed?
+- What improvements are needed?
+
+Lessons learned often result in:
+
+- Improved Analytics Rules.
+- Updated Playbooks.
+- Additional logging.
+- New threat hunting queries.
+- Enhanced staff training.
+
+Continuous improvement is a core principle of mature SOC operations.
+
+---
+
+# Microsoft Sentinel Response Capabilities
+
+Microsoft Sentinel supports response through several integrated features.
+
+### Incident Management
+
+Track ownership, severity, status, and investigation progress.
+
+### Automation Rules
+
+Automatically execute actions such as:
+
+- Assign incidents.
+- Update severity.
+- Add tags.
+- Trigger Playbooks.
+
+### Playbooks
+
+Azure Logic Apps-based workflows can automate response tasks, including:
+
+- Blocking IP addresses.
+- Disabling user accounts.
+- Sending notifications.
+- Creating IT service tickets.
+- Updating incident records.
+
+### Threat Intelligence
+
+Provides additional context for Indicators of Compromise (IOCs), helping analysts prioritize response actions.
+
+---
+
+# Incident Prioritization
+
+Not every incident requires the same level of response.
+
+Factors influencing prioritization include:
+
+- Business impact.
+- Severity.
+- Asset criticality.
+- Confidence level.
+- Threat intelligence.
+- Number of affected systems.
+- Evidence of successful compromise.
+
+Prioritization ensures limited resources are focused on the highest-risk incidents.
+
+---
+
+# Communication During an Incident
+
+Effective communication is essential throughout the response process.
+
+Stakeholders may include:
+
+- SOC analysts.
+- Incident responders.
+- IT operations.
+- System owners.
+- Management.
+- Legal and compliance teams.
+- Executive leadership.
+
+Clear communication reduces confusion and accelerates decision-making.
+
+---
+
+# Lab Implementation
+
+In this project, the incident response process focused on suspected SSH brute-force activity.
+
+Response workflow:
+
+1. Investigate repeated failed authentication attempts.
+2. Confirm suspicious behavior through KQL analysis.
+3. Identify the source IP address.
+4. Assess the likelihood of a brute-force attack.
+5. Recommend blocking the offending IP.
+6. Review authentication activity for successful logins.
+7. Continue monitoring for recurring attempts.
+
+Although this was a controlled lab environment, the response workflow mirrors standard practices used in enterprise SOCs.
+
+---
+
+# Sample Incident Report
+
+**Incident:** Repeated SSH Authentication Failures
+
+**Detection Source:** Microsoft Sentinel Analytics Rule
+
+**Severity:** Medium
+
+**Observed Activity:**
+
+- Multiple failed SSH authentication attempts from the same external IP address.
+- Failed login count exceeded the configured detection threshold.
+- Activity was consistent with brute-force authentication attempts.
+
+**Recommended Actions:**
+
+- Block the source IP address.
+- Review successful authentication events following failed attempts.
+- Reset affected credentials if compromise is suspected.
+- Monitor for additional attempts.
+- Tune the Analytics Rule if necessary.
+
+---
+
+# Best Practices
+
+Effective incident response should:
+
+- Follow a documented response plan.
+- Preserve forensic evidence.
+- Validate containment actions.
+- Communicate with stakeholders.
+- Document every action taken.
+- Conduct post-incident reviews.
+- Continuously improve detections and procedures.
+
+---
+
+# Common Challenges
+
+SOC teams frequently encounter:
+
+- Incomplete visibility.
+- Delayed detection.
+- Alert fatigue.
+- Limited staffing.
+- Unclear ownership.
+- Inadequate documentation.
+- Rapidly evolving attacker techniques.
+
+Preparation, automation, and continuous training help mitigate these challenges.
+
+---
+
+# Key Takeaways
+
+- Incident response transforms investigation findings into coordinated remediation actions.
+- A structured lifecycle improves consistency and reduces organizational risk.
+- Microsoft Sentinel supports response through incidents, automation rules, playbooks, and threat intelligence.
+- Post-incident reviews strengthen future detection and response capabilities.
+- Effective communication and documentation are essential throughout the response process.
+
+---
+
+# Chapter Summary
+
+Incident response is the operational phase where confirmed threats are contained, eradicated, and resolved. By following a structured lifecycle and leveraging Microsoft Sentinel's incident management and automation capabilities, organizations can minimize the impact of cyberattacks and restore normal operations efficiently.
+
+In this project, the incident response process addressed repeated SSH authentication failures by validating the activity, recommending containment measures, and documenting response actions. These practices reflect the workflows used by modern enterprise Security Operations Centers.
+
+In the next chapter, we will examine **MITRE ATT&CK**, exploring how standardized adversary tactics and techniques improve detection engineering, threat hunting, incident investigation, and security reporting.
