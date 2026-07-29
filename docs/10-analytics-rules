@@ -1,0 +1,389 @@
+# Chapter 10: Analytics Rules
+
+> *Automating threat detection with Microsoft Sentinel Analytics Rules.*
+
+---
+
+# Overview
+
+Security Operations Centers (SOCs) rely on continuous monitoring to identify suspicious activity across enterprise environments. Manually reviewing millions of security events is impossible, making automated detection essential.
+
+Microsoft Sentinel uses **Analytics Rules** to continuously evaluate telemetry stored in Azure Log Analytics Workspace. These rules execute Kusto Query Language (KQL) queries on a scheduled or near real-time basis and generate alerts when predefined conditions are met.
+
+Analytics Rules bridge the gap between threat hunting and incident response. A detection developed through threat hunting can be converted into an Analytics Rule, allowing Microsoft Sentinel to monitor for the same behavior automatically.
+
+In this project, Analytics Rules were used to detect repeated SSH authentication failures from external IP addresses, demonstrating how custom detections can be operationalized within a cloud-native SIEM.
+
+---
+
+# What are Analytics Rules?
+
+Analytics Rules are automated detection mechanisms that evaluate incoming security telemetry against predefined logic.
+
+Each rule consists of:
+
+- A KQL query
+- A query schedule
+- A lookback period
+- Alert generation criteria
+- Entity mappings
+- MITRE ATT&CK mappings
+- Incident creation settings
+
+When the rule conditions are met, Microsoft Sentinel generates an alert and, if configured, creates an incident for analyst investigation.
+
+---
+
+# Analytics Rule Workflow
+
+```
+Security Logs
+        │
+        ▼
+Azure Log Analytics Workspace
+        │
+        ▼
+Analytics Rule (KQL)
+        │
+        ▼
+Alert Generated
+        │
+        ▼
+Incident Created
+        │
+        ▼
+SOC Investigation
+        │
+        ▼
+Response & Remediation
+```
+
+---
+
+# Types of Analytics Rules
+
+Microsoft Sentinel supports several rule types.
+
+## Scheduled Rules
+
+Scheduled rules execute KQL queries at defined intervals.
+
+Examples:
+
+- Every 5 minutes
+- Every 15 minutes
+- Every hour
+- Daily
+
+These rules are commonly used for:
+
+- Failed logins
+- Malware detections
+- Firewall events
+- Administrative activity
+
+---
+
+## Near Real-Time (NRT) Rules
+
+NRT rules process events almost immediately after they are ingested.
+
+Typical use cases include:
+
+- Privilege escalation
+- Credential theft
+- High-risk administrative actions
+- Critical authentication events
+
+These rules minimize detection latency.
+
+---
+
+## Microsoft Security Rules
+
+These rules automatically create incidents from Microsoft security products such as:
+
+- Microsoft Defender XDR
+- Microsoft Defender for Endpoint
+- Microsoft Defender for Identity
+
+---
+
+## Fusion Rules
+
+Fusion Rules use Microsoft’s machine learning models to correlate multiple low-confidence alerts into a higher-confidence incident.
+
+For example:
+
+- Suspicious email
+- Unusual login
+- Privilege escalation
+
+Individually, these events may appear benign. Together, they can indicate a coordinated attack.
+
+---
+
+# Components of an Analytics Rule
+
+## Rule Name
+
+The name should clearly describe the detection.
+
+Example:
+
+```
+Multiple SSH Authentication Failures
+```
+
+---
+
+## Description
+
+Provide a concise explanation of:
+
+- Detection objective
+- Data source
+- Expected behavior
+- Investigation guidance
+
+Good documentation helps analysts quickly understand why an alert was generated.
+
+---
+
+## KQL Query
+
+The KQL query contains the detection logic.
+
+Example:
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)", 1, RawData)
+| summarize Attempts = count() by SourceIP
+| where Attempts > 5
+```
+
+---
+
+## Query Frequency
+
+Defines how often the rule executes.
+
+Examples:
+
+- Every 5 minutes
+- Every 15 minutes
+- Hourly
+
+Higher frequencies improve detection speed but may increase resource usage.
+
+---
+
+## Lookup Period
+
+Specifies the time window evaluated during each execution.
+
+Examples:
+
+- Last 5 minutes
+- Last hour
+- Last 24 hours
+
+The lookup period should align with the expected attack pattern.
+
+---
+
+## Alert Threshold
+
+Determines when an alert is generated.
+
+Examples:
+
+- More than 5 failed logins
+- More than 10 firewall blocks
+- More than 20 malware detections
+
+Thresholds should balance sensitivity and false-positive reduction.
+
+---
+
+## Severity
+
+Each alert should have an appropriate severity.
+
+| Severity | Typical Use Case |
+|----------|------------------|
+| Informational | Routine monitoring |
+| Low | Minor anomalies |
+| Medium | Suspicious activity |
+| High | Likely malicious behavior |
+| Critical | Immediate response required |
+
+---
+
+## Entity Mapping
+
+Entity mapping links alerts to security-relevant objects.
+
+Common entities include:
+
+- User accounts
+- Hosts
+- IP addresses
+- Processes
+- URLs
+- File hashes
+
+Proper entity mapping improves investigation efficiency and visualization.
+
+---
+
+## MITRE ATT&CK Mapping
+
+Rules should be mapped to relevant ATT&CK techniques whenever possible.
+
+For this project:
+
+| Technique | ID |
+|-----------|----|
+| Brute Force | T1110 |
+| Valid Accounts | T1078 |
+
+MITRE mapping standardizes detection coverage and reporting.
+
+---
+
+# Alert Generation
+
+When a rule identifies matching events:
+
+1. The KQL query returns matching records.
+2. Sentinel creates an alert.
+3. Related alerts may be grouped into an incident.
+4. The incident is assigned for investigation.
+5. Automation Rules or Playbooks may execute predefined response actions.
+
+---
+
+# Incident Creation
+
+Analytics Rules can automatically create incidents.
+
+Typical incident information includes:
+
+- Alert summary
+- Severity
+- Affected entities
+- Timeline
+- Related alerts
+- Investigation graph
+- MITRE techniques
+
+Grouping related alerts helps analysts understand the full scope of attacker activity.
+
+---
+
+# Rule Tuning
+
+Detection rules require continuous improvement.
+
+Common tuning activities include:
+
+- Adjusting thresholds
+- Excluding trusted IP ranges
+- Excluding service accounts
+- Improving parsing logic
+- Refining KQL queries
+- Updating MITRE mappings
+
+Regular tuning reduces alert fatigue while improving detection quality.
+
+---
+
+# Common Sources of False Positives
+
+Examples include:
+
+- Administrative maintenance
+- Vulnerability scans
+- Penetration testing
+- Scheduled automation
+- Backup processes
+
+Analysts should validate alerts before escalating incidents.
+
+---
+
+# Lab Implementation
+
+In this project, a Scheduled Analytics Rule was configured to identify repeated SSH authentication failures.
+
+Detection workflow:
+
+1. Query the `MeridianLogs_CL` table.
+2. Search for failed password events.
+3. Extract source IP addresses.
+4. Count authentication failures.
+5. Trigger an alert when failures exceeded the defined threshold.
+
+Representative query:
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)", 1, RawData)
+| summarize Attempts = count() by SourceIP
+| where Attempts > 5
+```
+
+Although the lab environment experienced ingestion issues that required a fallback `datatable` for demonstrations, the Analytics Rule design reflected the same approach used in production Microsoft Sentinel environments.
+
+---
+
+# Best Practices
+
+When developing Analytics Rules:
+
+- Use reliable and validated data sources.
+- Apply time filters to improve query performance.
+- Tune thresholds based on normal organizational behavior.
+- Map entities accurately.
+- Align detections with MITRE ATT&CK.
+- Test rules before enabling them in production.
+- Review and update rules as attack techniques evolve.
+
+---
+
+# Common Challenges
+
+SOC teams frequently encounter:
+
+- Excessive false positives
+- Missing telemetry
+- Duplicate alerts
+- Incorrect entity mappings
+- Inefficient KQL queries
+- Poorly tuned thresholds
+
+Continuous monitoring and refinement are essential to maintaining effective detections.
+
+---
+
+# Key Takeaways
+
+- Analytics Rules automate threat detection in Microsoft Sentinel.
+- Rules combine KQL queries, schedules, thresholds, and entity mappings.
+- Well-designed rules reduce analyst workload while improving detection accuracy.
+- Continuous tuning is essential for minimizing false positives and adapting to evolving threats.
+- Analytics Rules convert detection logic into repeatable, scalable monitoring capabilities.
+
+---
+
+# Chapter Summary
+
+Analytics Rules are the operational engine of Microsoft Sentinel, transforming detection logic into continuous monitoring capabilities. By combining efficient KQL queries, appropriate thresholds, entity mappings, and MITRE ATT&CK alignment, organizations can automate the identification of malicious activity while reducing manual effort.
+
+In this project, Analytics Rules were configured to detect repeated SSH authentication failures, demonstrating how threat hunting findings can be converted into automated detections that support real-world SOC operations.
+
+In the next chapter, we will explore **Incident Investigation**, where alerts generated by Analytics Rules are analyzed, validated, and prioritized to determine the appropriate response.
