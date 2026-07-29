@@ -1,1 +1,262 @@
+# Diagrams
 
+> *Visualizing the architecture, workflows, and operational processes of a Microsoft Sentinel Security Operations Center (SOC).*
+
+---
+
+# Overview
+
+Diagrams are an essential part of security engineering documentation. They simplify complex concepts, illustrate data flow, and provide a visual representation of how Microsoft Sentinel components interact within a Security Operations Center (SOC).
+
+The diagrams in this handbook complement the practical lab by illustrating the lifecycle of security telemetry—from log generation and ingestion to detection, investigation, and incident response.
+
+---
+
+# Objectives
+
+The diagrams in this section are intended to:
+
+- Visualize the Microsoft Sentinel architecture
+- Illustrate log ingestion into Azure Monitor
+- Explain the threat hunting lifecycle
+- Demonstrate the detection engineering process
+- Outline the incident investigation workflow
+- Show the complete SOC operational lifecycle
+
+---
+
+# Diagram 1 – Microsoft Sentinel Architecture
+
+## Purpose
+
+Illustrates how security telemetry flows through the Microsoft Sentinel platform.
+
+```text
++-----------------------+
+|   Linux Server (SSH)  |
++-----------+-----------+
+            |
+            ▼
++-----------------------+
+| Python Log Ingestion  |
+| (REST API)            |
++-----------+-----------+
+            |
+            ▼
++-----------------------+
+| Azure Log Analytics   |
+| Workspace             |
++-----------+-----------+
+            |
+            ▼
++-----------------------+
+| Microsoft Sentinel    |
++-----------+-----------+
+            |
+     +------+------+
+     |             |
+     ▼             ▼
+ Threat Hunting  Analytics Rules
+     |             |
+     +------+------+
+            |
+            ▼
++-----------------------+
+| SOC Investigation     |
++-----------------------+
+```
+
+### Components
+
+| Component | Description |
+|----------|-------------|
+| Linux Server | Generates authentication logs |
+| Python Script | Uploads logs using the HTTP Data Collector API |
+| Log Analytics Workspace | Stores custom log data |
+| Microsoft Sentinel | Performs threat detection and monitoring |
+| Analytics Rules | Generates alerts based on KQL |
+| SOC Analyst | Investigates and responds to incidents |
+
+---
+
+# Diagram 2 – Log Ingestion Workflow
+
+## Purpose
+
+Demonstrates how security logs are collected and ingested into Microsoft Sentinel.
+
+```text
+Authentication Logs
+        │
+        ▼
+Python Ingestion Script
+        │
+        ▼
+HTTP Data Collector API
+        │
+        ▼
+Azure Log Analytics Workspace
+        │
+        ▼
+Microsoft Sentinel
+```
+
+### Description
+
+The Python ingestion script sends custom authentication logs to Azure through the HTTP Data Collector API. Once stored in the Log Analytics Workspace, the logs become available for KQL queries, analytics rules, and investigations within Microsoft Sentinel.
+
+---
+
+# Diagram 3 – Threat Hunting Workflow
+
+## Purpose
+
+Illustrates the proactive threat hunting process followed by SOC analysts.
+
+```text
+Develop Hypothesis
+        │
+        ▼
+Collect Telemetry
+        │
+        ▼
+Execute KQL Queries
+        │
+        ▼
+Analyze Results
+        │
+        ▼
+Identify Suspicious Activity
+        │
+        ▼
+Escalate Investigation
+```
+
+### Description
+
+Threat hunting begins with a hypothesis and leverages KQL to identify anomalies, suspicious behavior, or indicators of compromise that may not trigger automated alerts.
+
+---
+
+# Diagram 4 – Detection Engineering Lifecycle
+
+## Purpose
+
+Shows how threat hunting queries are transformed into automated detections.
+
+```text
+Security Logs
+      │
+      ▼
+Threat Hunting
+      │
+      ▼
+Develop Detection Logic
+      │
+      ▼
+Validate Query
+      │
+      ▼
+Tune Detection
+      │
+      ▼
+Deploy Analytics Rule
+      │
+      ▼
+Generate Alerts
+```
+
+### Description
+
+Detection engineering converts manually validated hunting logic into repeatable Analytics Rules, enabling continuous monitoring and automated alert generation.
+
+---
+
+# Diagram 5 – Incident Investigation Workflow
+
+## Purpose
+
+Illustrates the investigation process after an alert is generated.
+
+```text
+Alert Generated
+        │
+        ▼
+Validate Alert
+        │
+        ▼
+Analyze Source IP
+        │
+        ▼
+Review Authentication Logs
+        │
+        ▼
+Determine Attack Scope
+        │
+        ▼
+Document Findings
+        │
+        ▼
+Incident Response
+```
+
+### Description
+
+Security analysts investigate alerts by correlating authentication events, validating indicators of compromise, determining attack scope, and documenting findings to support containment and remediation.
+
+---
+
+# Diagram 6 – SOC Operational Lifecycle
+
+## Purpose
+
+Provides a high-level view of continuous Security Operations Center activities.
+
+```text
+Collect Logs
+      │
+      ▼
+Monitor
+      │
+      ▼
+Detect
+      │
+      ▼
+Investigate
+      │
+      ▼
+Respond
+      │
+      ▼
+Recover
+      │
+      ▼
+Improve Detection
+      └───────────────┐
+                      │
+                      ▼
+                 Continuous Monitoring
+```
+
+### Description
+
+A mature SOC operates as a continuous cycle, where lessons learned from investigations are used to refine detection logic, improve threat hunting strategies, and strengthen the overall security posture.
+
+---
+
+# Best Practices
+
+- Use architecture diagrams to explain system design and data flow.
+- Keep workflow diagrams simple and easy to follow.
+- Maintain consistent symbols and directional flow.
+- Update diagrams whenever the architecture changes.
+- Ensure diagrams align with the written documentation.
+
+---
+
+# Key Takeaways
+
+- Visual documentation enhances understanding of Microsoft Sentinel architecture and workflows.
+- Diagrams provide context for threat hunting, detection engineering, and incident response.
+- Combining diagrams with KQL examples creates a comprehensive learning resource for SOC analysts and security engineers.
+- Clear visual representations improve communication between security analysts, engineers, and stakeholders.
