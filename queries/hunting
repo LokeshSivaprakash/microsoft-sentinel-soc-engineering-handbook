@@ -1,6 +1,203 @@
-failed-ssh-logins.kql
-top-attacking-ips.kql
-authentication-summary.kql
-successful-logins.kql
-user-activity-summary.kql
-suspicious-ip-analysis.kql
+# Threat Hunting
+
+> *Threat hunting is the proactive search for indicators of compromise, malicious behavior, or suspicious activity before automated detections generate alerts.*
+
+---
+
+# Overview
+
+Threat hunting is a critical function of a Security Operations Center (SOC). Unlike alert-driven investigations, threat hunting begins with a hypothesis and uses telemetry to validate or refute potential malicious activity.
+
+Microsoft Sentinel provides powerful hunting capabilities through Kusto Query Language (KQL), enabling analysts to search large volumes of log data quickly and efficiently.
+
+This section demonstrates common hunting techniques using custom SSH authentication logs.
+
+---
+
+# Objectives
+
+The hunting queries in this handbook are designed to:
+
+- Identify repeated authentication failures
+- Discover the most active source IP addresses
+- Analyze login patterns
+- Detect suspicious authentication behavior
+- Support hypothesis-driven investigations
+
+---
+
+# Hunting Methodology
+
+```
+Develop Hypothesis
+        │
+        ▼
+Collect Relevant Logs
+        │
+        ▼
+Search with KQL
+        │
+        ▼
+Analyze Results
+        │
+        ▼
+Identify Indicators
+        │
+        ▼
+Escalate or Close Investigation
+```
+
+---
+
+# Hunt 1 — Failed SSH Login Attempts
+
+## Purpose
+
+Repeated failed login attempts are a common indicator of brute-force attacks against SSH services.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| project TimeGenerated, Computer, RawData
+```
+
+### Expected Output
+
+| TimeGenerated | Computer | RawData |
+|---------------|----------|---------|
+| ... | server01 | Failed password for invalid user admin... |
+
+### Why It Matters
+
+A high volume of failed authentication attempts may indicate password guessing or credential stuffing activity.
+
+---
+
+# Hunt 2 — Top Attacking Source IPs
+
+## Purpose
+
+Identify the IP addresses responsible for the highest number of failed login attempts.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)", 1, RawData)
+| summarize FailedAttempts = count() by SourceIP
+| order by FailedAttempts desc
+```
+
+### Example Output
+
+| SourceIP | FailedAttempts |
+|----------|---------------:|
+| 203.0.113.77 | 28 |
+| 198.51.100.42 | 14 |
+
+### Why It Matters
+
+Ranking source IPs helps analysts prioritize investigation of the most aggressive attackers.
+
+---
+
+# Hunt 3 — Authentication Activity Over Time
+
+## Purpose
+
+Visualize authentication failures to identify spikes or abnormal activity.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| summarize FailedAttempts = count() by bin(TimeGenerated, 1h)
+| render timechart
+```
+
+### Why It Matters
+
+Time-based analysis helps identify attack campaigns, brute-force bursts, and unusual authentication trends.
+
+---
+
+# Hunt 4 — Successful Logins
+
+## Purpose
+
+Review successful SSH logins and compare them with failed authentication attempts.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Accepted password"
+| project TimeGenerated, Computer, RawData
+```
+
+### Why It Matters
+
+A successful login immediately following numerous failures may indicate a compromised account.
+
+---
+
+# Hunt 5 — Authentication Summary by Host
+
+## Purpose
+
+Determine which systems receive the highest number of authentication events.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| summarize Events = count() by Computer
+| order by Events desc
+```
+
+### Example Output
+
+| Computer | Events |
+|----------|-------:|
+| server01 | 175 |
+| server02 | 116 |
+
+### Why It Matters
+
+High authentication activity on a single host may warrant additional investigation.
+
+---
+
+# Best Practices
+
+When performing threat hunting:
+
+- Develop a clear hunting hypothesis.
+- Search broad datasets before narrowing the scope.
+- Correlate events across multiple indicators.
+- Validate findings before escalating incidents.
+- Document hunting queries for future reuse.
+
+---
+
+# MITRE ATT&CK Mapping
+
+| Technique | Description |
+|-----------|-------------|
+| T1110 | Brute Force |
+| T1078 | Valid Accounts |
+| T1021 | Remote Services |
+
+---
+
+# Key Takeaways
+
+- Threat hunting is proactive rather than reactive.
+- KQL enables rapid analysis of authentication data.
+- Repeated failed logins often indicate brute-force activity.
+- Time-based analysis reveals attack patterns.
+- Hunting results can be converted into production detection rules.
