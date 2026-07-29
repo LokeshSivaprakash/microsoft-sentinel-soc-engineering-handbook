@@ -1,0 +1,3 @@
+brute-force-detection.kql
+failed-login-threshold.kql
+high-risk-source-ip.kql
