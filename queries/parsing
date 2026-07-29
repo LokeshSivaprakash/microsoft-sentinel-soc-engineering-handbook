@@ -1,0 +1,4 @@
+validate-ingestion.kql
+preview-data.kql
+count-events.kql
+extract-source-ip.kql
