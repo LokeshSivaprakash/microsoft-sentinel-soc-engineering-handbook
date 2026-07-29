@@ -1,0 +1,401 @@
+# Chapter 9: Detection Engineering
+
+> *Designing, developing, testing, and optimizing security detections in Microsoft Sentinel.*
+
+---
+
+# Overview
+
+Modern Security Operations Centers (SOCs) generate millions of security events every day. Reviewing every event manually is neither practical nor scalable. Detection engineering addresses this challenge by transforming raw telemetry into meaningful security alerts that help analysts identify malicious activity quickly and accurately.
+
+Detection engineering is the process of designing, implementing, testing, tuning, and maintaining detection logic that identifies suspicious behavior while minimizing false positives.
+
+Within Microsoft Sentinel, detection engineering is primarily implemented through **Analytics Rules**, which execute Kusto Query Language (KQL) queries against data stored in Azure Log Analytics Workspace.
+
+The quality of a SOC depends heavily on the quality of its detections. Poorly designed rules overwhelm analysts with false positives, while weak detections may allow attackers to remain undetected.
+
+---
+
+# What is Detection Engineering?
+
+Detection engineering is the discipline of creating automated logic that identifies suspicious or malicious activity from security telemetry.
+
+Rather than relying solely on signatures or predefined alerts, detection engineers analyze attacker techniques, identify observable behaviors, and develop rules that detect those behaviors consistently.
+
+Detection engineering combines:
+
+- Threat intelligence
+- Security analytics
+- Log analysis
+- KQL development
+- MITRE ATT&CK mapping
+- Continuous tuning
+
+The goal is to produce accurate, actionable, and reliable alerts.
+
+---
+
+# Why Detection Engineering Matters
+
+Organizations receive an enormous volume of security events every day.
+
+Examples include:
+
+- Authentication events
+- Endpoint alerts
+- Firewall logs
+- Administrative actions
+- Network connections
+- Cloud activity
+
+Without automated detections, analysts would need to review these events manually.
+
+Effective detections help organizations:
+
+- Detect attacks earlier.
+- Reduce Mean Time to Detect (MTTD).
+- Reduce analyst workload.
+- Improve incident prioritization.
+- Standardize investigations.
+- Improve SOC efficiency.
+
+---
+
+# Detection Lifecycle
+
+Detection engineering is a continuous process rather than a one-time activity.
+
+```
+Threat Intelligence
+        │
+        ▼
+Threat Analysis
+        │
+        ▼
+Detection Design
+        │
+        ▼
+KQL Development
+        │
+        ▼
+Testing
+        │
+        ▼
+Analytics Rule
+        │
+        ▼
+Alert Generation
+        │
+        ▼
+SOC Investigation
+        │
+        ▼
+Rule Tuning
+        │
+        ▼
+Continuous Improvement
+```
+
+Each investigation provides feedback that improves future detections.
+
+---
+
+# Components of a Detection
+
+A high-quality detection contains several key elements.
+
+### Data Source
+
+Where does the telemetry originate?
+
+Examples:
+
+- Windows Security Logs
+- Syslog
+- Microsoft Entra ID
+- Microsoft Defender
+- Firewall logs
+- Custom application logs
+
+---
+
+### Detection Logic
+
+The KQL query that identifies suspicious behavior.
+
+Example:
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize Attempts=count() by SourceIP
+| where Attempts > 5
+```
+
+---
+
+### Threshold
+
+Defines when activity becomes suspicious.
+
+Examples:
+
+- More than five failed logins
+- Ten password resets within one hour
+- Twenty blocked firewall connections
+
+Choosing the correct threshold is critical.
+
+---
+
+### Severity
+
+Each detection should be assigned an appropriate severity level.
+
+| Severity | Description |
+|----------|-------------|
+| Informational | Low-risk activity |
+| Low | Minor suspicious behavior |
+| Medium | Activity requiring analyst review |
+| High | Likely malicious activity |
+| Critical | Immediate response required |
+
+Severity should reflect the potential business impact.
+
+---
+
+### Entity Mapping
+
+Entity mapping allows Microsoft Sentinel to associate alerts with users, hosts, IP addresses, and other objects.
+
+Examples include:
+
+- Account
+- Host
+- IP Address
+- Process
+- File
+- URL
+
+Entity mapping improves investigations by providing context and enabling visual investigation graphs.
+
+---
+
+# Types of Detection Rules
+
+Microsoft Sentinel supports multiple Analytics Rule types.
+
+### Scheduled Rules
+
+Run KQL queries at regular intervals.
+
+Example:
+
+- Every 5 minutes
+- Every hour
+- Daily
+
+These are the most commonly used rules.
+
+---
+
+### Near Real-Time Rules (NRT)
+
+Evaluate events almost immediately after ingestion.
+
+Suitable for:
+
+- Credential attacks
+- Privilege escalation
+- High-risk administrative actions
+
+---
+
+### Microsoft Security Rules
+
+Automatically generate incidents from Microsoft security products such as Microsoft Defender XDR.
+
+---
+
+### Fusion Rules
+
+Use machine learning to correlate multiple alerts into higher-confidence incidents.
+
+Fusion reduces alert fatigue by combining related events.
+
+---
+
+# Rule Tuning
+
+Detection engineering does not end after deployment.
+
+Rules require continuous tuning.
+
+Typical tuning activities include:
+
+- Adjust thresholds
+- Exclude known administrative accounts
+- Exclude trusted IP ranges
+- Reduce duplicate alerts
+- Improve parsing logic
+- Update detection logic based on new threats
+
+Continuous tuning improves detection quality over time.
+
+---
+
+# False Positives
+
+A false positive occurs when legitimate activity is incorrectly identified as malicious.
+
+Examples:
+
+- Administrator maintenance
+- Scheduled automation
+- Security testing
+- Vulnerability scanning
+
+High false-positive rates increase analyst workload and contribute to alert fatigue.
+
+Reducing false positives is a primary goal of detection engineering.
+
+---
+
+# False Negatives
+
+A false negative occurs when malicious activity is not detected.
+
+Examples:
+
+- Threshold too high
+- Missing telemetry
+- Poor parsing
+- Incomplete data collection
+
+False negatives are often more dangerous than false positives because attackers remain undetected.
+
+---
+
+# Detection Example
+
+The following detection identifies repeated SSH authentication failures.
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize Attempts=count() by SourceIP
+| where Attempts > 5
+| order by Attempts desc
+```
+
+Detection logic:
+
+- Search authentication failures.
+- Extract source IP addresses.
+- Count repeated attempts.
+- Generate an alert if failures exceed the defined threshold.
+
+---
+
+# Detection Testing
+
+Before enabling a rule in production, engineers should verify:
+
+- Query accuracy
+- Correct data source
+- Threshold values
+- Expected entities
+- Alert frequency
+- Investigation usefulness
+
+Testing helps reduce unnecessary alerts and ensures meaningful detections.
+
+---
+
+# Analytics Rule Configuration
+
+A typical Analytics Rule includes:
+
+- Rule name
+- Description
+- KQL query
+- Query frequency
+- Lookup period
+- Alert threshold
+- Severity
+- MITRE ATT&CK mapping
+- Entity mapping
+- Incident settings
+- Automation rules
+
+These settings determine how the detection behaves within Microsoft Sentinel.
+
+---
+
+# Lab Mapping
+
+During this project, a Scheduled Analytics Rule was created to detect repeated SSH authentication failures.
+
+The rule:
+
+- Queried the `MeridianLogs_CL` table.
+- Parsed source IP addresses.
+- Counted failed login attempts.
+- Triggered an alert when the defined threshold was exceeded.
+- Supported investigation of potential brute-force attacks.
+
+Although the lab environment required a fallback `datatable` approach due to ingestion challenges, the detection logic remained consistent with production detection engineering practices.
+
+---
+
+# Best Practices
+
+Effective detection engineering should:
+
+- Use reliable data sources.
+- Validate data quality.
+- Keep queries efficient.
+- Tune thresholds regularly.
+- Reduce false positives.
+- Document detection logic.
+- Map detections to MITRE ATT&CK.
+- Review detections after incidents.
+- Continuously improve based on analyst feedback.
+
+---
+
+# Common Challenges
+
+Detection engineers frequently encounter:
+
+- Poor-quality telemetry
+- Duplicate alerts
+- Missing log sources
+- Incomplete entity mapping
+- Inefficient KQL queries
+- Alert fatigue
+- Rapidly evolving attacker techniques
+
+Successful detection engineering requires continuous monitoring, testing, and refinement.
+
+---
+
+# Key Takeaways
+
+- Detection engineering transforms security telemetry into actionable alerts.
+- Microsoft Sentinel uses Analytics Rules powered by KQL.
+- Effective detections balance sensitivity with accuracy.
+- Continuous tuning is essential for reducing false positives.
+- Strong detections improve SOC efficiency and incident response.
+
+---
+
+# Chapter Summary
+
+Detection engineering is one of the most critical disciplines within a Security Operations Center. By developing reliable Analytics Rules, validating detection logic, and continuously refining alert quality, security teams can identify malicious activity earlier while minimizing unnecessary investigations.
+
+In this project, detection engineering focused on identifying repeated SSH authentication failures using custom log data, KQL, and Microsoft Sentinel Analytics Rules. This demonstrates how structured detection logic can transform raw authentication events into actionable security alerts.
+
+In the next chapter, we will explore **Analytics Rules** in greater detail, including scheduling, entity mapping, incident creation, alert grouping, suppression, and production-ready rule configuration.
