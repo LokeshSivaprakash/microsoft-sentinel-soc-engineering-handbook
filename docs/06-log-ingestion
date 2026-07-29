@@ -1,0 +1,326 @@
+# Chapter 6: Log Ingestion
+
+> *Understanding how security telemetry is collected, normalized, and ingested into Microsoft Sentinel.*
+
+---
+
+# Overview
+
+The effectiveness of any Security Information and Event Management (SIEM) platform depends on the quality of the data it receives. Security detections, threat hunting, incident investigations, and compliance reporting are only as reliable as the underlying telemetry.
+
+Log ingestion is the process of collecting security events from various sources and delivering them to Microsoft Sentinel through Azure Monitor and Azure Log Analytics Workspace. This process ensures that logs from cloud services, virtual machines, applications, firewalls, identity providers, and custom systems are centralized for analysis.
+
+In this project, log ingestion involved importing Linux SSH authentication logs into a custom Log Analytics table, enabling Microsoft Sentinel to detect suspicious authentication attempts through Kusto Query Language (KQL).
+
+---
+
+# What is Log Ingestion?
+
+Log ingestion is the process of collecting data from one or more sources and storing it in a centralized repository where it can be analyzed.
+
+A typical log ingestion workflow consists of four stages:
+
+1. **Data Generation** – Systems generate operational or security events.
+2. **Data Collection** – Azure Monitor Agents or APIs collect the events.
+3. **Data Processing** – Logs are normalized and indexed.
+4. **Data Storage** – Events are stored in Azure Log Analytics Workspace.
+
+Once stored, the data becomes available for analytics, dashboards, threat hunting, and incident investigation.
+
+---
+
+# Why Log Ingestion Matters
+
+Without accurate telemetry, a SIEM platform cannot detect threats effectively.
+
+Proper log ingestion enables organizations to:
+
+- Detect suspicious activity in near real time.
+- Correlate events across multiple systems.
+- Support forensic investigations.
+- Meet compliance and audit requirements.
+- Build dashboards and reports.
+- Improve incident response.
+
+Missing or incomplete logs create blind spots that attackers can exploit.
+
+---
+
+# Common Data Sources
+
+Microsoft Sentinel supports telemetry from a wide variety of sources.
+
+### Cloud Platforms
+
+- Microsoft Azure
+- Amazon Web Services (AWS)
+- Google Cloud Platform (GCP)
+
+### Operating Systems
+
+- Windows Event Logs
+- Linux Syslog
+
+### Identity Providers
+
+- Microsoft Entra ID
+- Active Directory
+- Okta
+
+### Security Products
+
+- Microsoft Defender XDR
+- Microsoft Defender for Cloud
+- Microsoft Defender for Endpoint
+
+### Network Devices
+
+- Firewalls
+- VPN Gateways
+- Routers
+- Switches
+- Web Application Firewalls
+
+### Applications
+
+- Web servers
+- Databases
+- Business applications
+- Custom applications
+
+---
+
+# Log Ingestion Architecture
+
+```
+Security Sources
+
+Windows
+Linux
+Applications
+Azure Resources
+Firewalls
+Identity Systems
+
+        │
+
+        ▼
+
+Azure Monitor Agent
+REST APIs
+Data Connectors
+
+        │
+
+        ▼
+
+Azure Monitor
+
+        │
+
+        ▼
+
+Azure Log Analytics Workspace
+
+        │
+
+        ▼
+
+Microsoft Sentinel
+
+        │
+
+        ▼
+
+Analytics
+Threat Hunting
+Incidents
+Dashboards
+```
+
+---
+
+# Native Data Connectors
+
+Microsoft Sentinel includes hundreds of built-in connectors.
+
+Examples include:
+
+- Microsoft Entra ID
+- Microsoft Defender
+- Office 365
+- Azure Firewall
+- Windows Security Events
+- Linux Syslog
+- AWS CloudTrail
+- Palo Alto Networks
+- Cisco ASA
+- Fortinet
+
+Native connectors simplify integration and reduce configuration effort.
+
+---
+
+# Custom Log Ingestion
+
+Not every data source has a built-in connector.
+
+Organizations often need to collect logs from:
+
+- Legacy applications
+- Custom software
+- Proprietary appliances
+- Internal business systems
+
+Microsoft Sentinel supports custom ingestion using:
+
+- Azure Monitor HTTP Data Collector API
+- REST APIs
+- Azure Monitor Agent
+- Custom connectors
+
+---
+
+# Log Normalization
+
+Security logs originate from many systems, each with its own format.
+
+Normalization converts raw events into a structured format.
+
+For example:
+
+Raw SSH log:
+
+```
+Failed password for invalid user admin from 203.0.113.77 port 22 ssh2
+```
+
+After parsing:
+
+| Field | Value |
+|-------|-------|
+| Username | admin |
+| Source IP | 203.0.113.77 |
+| Event Type | Failed Login |
+| Protocol | SSH |
+| Port | 22 |
+
+Normalization improves search, correlation, and detection accuracy.
+
+---
+
+# Data Validation
+
+After ingestion, it is important to verify that logs are arriving correctly.
+
+Example KQL query:
+
+```kusto
+MeridianLogs_CL
+| take 10
+```
+
+This query retrieves sample records from the custom table.
+
+Other useful validation queries include:
+
+```kusto
+MeridianLogs_CL
+| count
+```
+
+```kusto
+MeridianLogs_CL
+| summarize count() by Computer
+```
+
+Validation should always be performed before creating detections.
+
+---
+
+# Lab Implementation
+
+This project used a custom Python ingestion script to upload authentication logs into Azure Log Analytics.
+
+The implementation process included:
+
+1. Creating an Azure Resource Group.
+2. Creating a Log Analytics Workspace.
+3. Enabling Microsoft Sentinel.
+4. Configuring the Data Collector API.
+5. Running the Python ingestion script.
+6. Creating the custom table **MeridianLogs_CL**.
+7. Validating log ingestion using KQL.
+
+During testing, the ingestion script successfully returned an HTTP 200 response, indicating that Azure accepted the uploaded data.
+
+---
+
+# Challenges Encountered
+
+During the implementation, a challenge occurred where the custom table was created successfully, but the imported authentication events did not appear as expected.
+
+Troubleshooting steps included:
+
+- Verifying the Workspace ID.
+- Confirming the Shared Key.
+- Reviewing the Python ingestion script.
+- Validating HTTP responses.
+- Checking table creation.
+- Executing test KQL queries.
+- Reviewing ingestion delays.
+
+To continue the Sentinel exercises while investigating the issue, a fallback `datatable` approach was used for several analytics and hunting examples. This ensured that KQL development and incident analysis could proceed while preserving the overall learning objectives of the project.
+
+This experience highlights an important lesson for security engineers: successful API responses do not always guarantee immediate data availability, and validating ingestion should always be part of the deployment process.
+
+---
+
+# Best Practices
+
+When implementing log ingestion:
+
+- Collect only necessary telemetry.
+- Validate ingestion after every configuration change.
+- Monitor ingestion health regularly.
+- Standardize log formats where possible.
+- Secure API keys and credentials.
+- Document ingestion workflows.
+- Review ingestion costs periodically.
+
+---
+
+# Common Challenges
+
+Organizations commonly encounter:
+
+- Delayed log ingestion.
+- Missing telemetry.
+- Incorrect timestamps.
+- Duplicate events.
+- Parsing errors.
+- Misconfigured agents.
+- API authentication failures.
+- Data retention issues.
+
+Understanding these challenges helps security engineers troubleshoot ingestion pipelines more effectively.
+
+---
+
+# Key Takeaways
+
+- Log ingestion is the foundation of every SIEM deployment.
+- Microsoft Sentinel supports both native connectors and custom ingestion methods.
+- Azure Monitor and Azure Log Analytics Workspace process and store incoming telemetry.
+- Validation is essential before building detections or investigations.
+- Real-world deployments require ongoing monitoring and troubleshooting to ensure reliable data collection.
+
+---
+
+# Chapter Summary
+
+Log ingestion transforms raw security events into structured telemetry that Microsoft Sentinel can analyze. By collecting, validating, and storing logs in Azure Log Analytics Workspace, organizations create the foundation for threat detection, hunting, and incident response.
+
+In this project, custom SSH authentication logs were ingested into a Log Analytics Workspace and analyzed using Kusto Query Language. The troubleshooting process reinforced the importance of validating data pipelines before relying on detections.
+
+In the next chapter, we will explore **Kusto Query Language (KQL)**, the powerful query language used to search, filter, correlate, and analyze security data stored in Azure Log Analytics Workspace.
