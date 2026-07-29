@@ -1,0 +1,286 @@
+# Chapter 13: MITRE ATT&CK Framework
+
+> *Using the MITRE ATT&CK framework to understand, classify, and improve security detections.*
+
+---
+
+# Overview
+
+Understanding how attackers operate is essential for building effective security detections and response strategies. Rather than focusing solely on malware or individual indicators of compromise, modern Security Operations Centers (SOCs) analyze attacker behavior throughout the lifecycle of an intrusion.
+
+The MITRE ATT&CK (Adversarial Tactics, Techniques, and Common Knowledge) framework is a globally recognized knowledge base that documents real-world adversary tactics, techniques, and procedures (TTPs). It provides a common language for describing attacker behavior, enabling security teams to design better detections, perform structured threat hunting, and evaluate defensive coverage.
+
+Microsoft Sentinel integrates directly with the MITRE ATT&CK framework, allowing Analytics Rules and incidents to be mapped to specific tactics and techniques. This helps analysts understand the intent behind an attack and prioritize investigations.
+
+In this project, SSH brute-force authentication attempts were mapped to the appropriate ATT&CK techniques, demonstrating how behavioral analysis improves detection engineering and incident response.
+
+---
+
+# What is MITRE ATT&CK?
+
+MITRE ATT&CK is a publicly available framework that documents how real-world adversaries gain access to systems, move through environments, maintain persistence, escalate privileges, and achieve their objectives.
+
+The framework is based on observed attacker behavior rather than theoretical attack models.
+
+It enables organizations to:
+
+- Standardize threat analysis.
+- Build behavior-based detections.
+- Improve threat hunting.
+- Measure defensive coverage.
+- Prioritize security improvements.
+- Communicate findings using a common vocabulary.
+
+---
+
+# ATT&CK Matrix
+
+The ATT&CK Enterprise Matrix organizes attacker behavior into **tactics** and **techniques**.
+
+A **tactic** describes the attacker's objective.
+
+A **technique** describes how that objective is achieved.
+
+For example:
+
+| Tactic | Technique |
+|---------|-----------|
+| Initial Access | Brute Force |
+| Credential Access | Password Spraying |
+| Discovery | Network Service Scanning |
+| Lateral Movement | Remote Services |
+| Persistence | Valid Accounts |
+| Exfiltration | Exfiltration Over Web Services |
+
+This structure helps analysts understand both the *goal* and the *method* of an attacker.
+
+---
+
+# Tactics
+
+MITRE defines several high-level tactics representing different stages of an attack.
+
+Examples include:
+
+- Reconnaissance
+- Resource Development
+- Initial Access
+- Execution
+- Persistence
+- Privilege Escalation
+- Defense Evasion
+- Credential Access
+- Discovery
+- Lateral Movement
+- Collection
+- Command and Control
+- Exfiltration
+- Impact
+
+Each tactic contains multiple techniques that describe specific attacker behaviors.
+
+---
+
+# Techniques and Sub-Techniques
+
+A **technique** describes a general method used by an attacker.
+
+Some techniques include **sub-techniques**, providing more detailed classifications.
+
+Example:
+
+| Technique | ID |
+|-----------|----|
+| Brute Force | T1110 |
+| Password Guessing | T1110.001 |
+| Password Spraying | T1110.003 |
+
+Using sub-techniques provides more precise mappings when the evidence supports that level of detail.
+
+---
+
+# Why ATT&CK Matters
+
+Mapping detections to ATT&CK provides several benefits.
+
+### Standardized Communication
+
+Analysts, engineers, and management can describe attacker behavior consistently.
+
+### Detection Coverage
+
+Organizations can identify which attacker techniques are monitored and which require additional detections.
+
+### Threat Hunting
+
+ATT&CK techniques provide starting points for proactive hunting.
+
+### Incident Investigation
+
+Analysts can understand where an attacker is within the attack lifecycle.
+
+### Reporting
+
+Executives and auditors can measure defensive maturity using ATT&CK coverage.
+
+---
+
+# Microsoft Sentinel Integration
+
+Microsoft Sentinel allows Analytics Rules to include ATT&CK mappings.
+
+Benefits include:
+
+- Better incident context.
+- Improved investigation workflows.
+- ATT&CK-based reporting.
+- Easier detection management.
+- Consistent analyst communication.
+
+Mapped techniques appear within incidents, helping analysts quickly understand the likely adversary behavior.
+
+---
+
+# Mapping the Lab Investigation
+
+The primary activity investigated in this project was repeated SSH authentication failures.
+
+The observed behavior aligned with:
+
+| Technique | ID | Why it Applies |
+|-----------|----|----------------|
+| Brute Force | T1110 | Repeated password guessing attempts against SSH accounts. |
+| Valid Accounts *(potential follow-on)* | T1078 | Applicable if a brute-force attempt eventually results in successful authentication. |
+
+**Important:** During this lab, repeated failed authentication attempts were observed. The `Valid Accounts (T1078)` technique should only be associated if evidence shows a successful login using legitimate credentials after the brute-force activity.
+
+This distinction is important because ATT&CK mappings should reflect observed evidence rather than assumptions.
+
+---
+
+# Investigation Example
+
+Observed authentication events:
+
+```
+Failed password for invalid user admin
+Failed password for invalid user root
+Failed password for invalid user test
+```
+
+Investigation findings:
+
+- High number of authentication failures.
+- Repeated attempts from the same external IP address.
+- Similar usernames targeted.
+- Consistent attack pattern over a short period.
+
+Assessment:
+
+The activity was consistent with automated brute-force authentication attempts.
+
+---
+
+# From Hunting to Detection
+
+The ATT&CK framework supports the entire SOC workflow.
+
+```
+MITRE Technique
+        │
+        ▼
+Threat Hunting
+        │
+        ▼
+KQL Investigation
+        │
+        ▼
+Detection Engineering
+        │
+        ▼
+Analytics Rule
+        │
+        ▼
+Incident
+        │
+        ▼
+Incident Response
+```
+
+Using ATT&CK ensures consistency from initial investigation through long-term detection improvements.
+
+---
+
+# Measuring Detection Coverage
+
+Organizations should periodically review their ATT&CK coverage.
+
+Example questions include:
+
+- Which tactics are monitored?
+- Which techniques lack detections?
+- Which detections produce frequent false positives?
+- Which techniques are highest priority based on organizational risk?
+
+Coverage reviews help prioritize future engineering efforts.
+
+---
+
+# Best Practices
+
+When using ATT&CK:
+
+- Map detections only to techniques supported by evidence.
+- Review mappings as detections evolve.
+- Use sub-techniques when appropriate.
+- Align threat hunting with ATT&CK tactics.
+- Measure coverage regularly.
+- Avoid assigning techniques based on assumptions.
+
+---
+
+# Common Challenges
+
+Security teams often encounter:
+
+- Incorrect ATT&CK mappings.
+- Overly broad technique assignments.
+- Failure to update mappings.
+- Inconsistent use across teams.
+- Treating ATT&CK as a checklist rather than an analytical framework.
+
+Regular reviews improve consistency and accuracy.
+
+---
+
+# Lab Implementation
+
+During this project:
+
+- Authentication telemetry was analyzed using KQL.
+- SSH brute-force behavior was identified.
+- Detection logic was mapped to **T1110 – Brute Force**.
+- Investigation findings were documented using ATT&CK terminology.
+- Recommendations included enhancing detections and monitoring for successful authentication attempts that could indicate progression to additional ATT&CK techniques.
+
+This exercise demonstrated how ATT&CK provides a structured method for describing attacker behavior and improving future detections.
+
+---
+
+# Key Takeaways
+
+- MITRE ATT&CK is a behavior-based framework for understanding adversary techniques.
+- Tactics describe attacker objectives, while techniques describe how those objectives are achieved.
+- Microsoft Sentinel supports ATT&CK mappings within Analytics Rules and incidents.
+- Accurate mappings improve investigations, reporting, and detection engineering.
+- ATT&CK should be used to describe observed behavior, not assumed attacker actions.
+
+---
+
+# Chapter Summary
+
+The MITRE ATT&CK framework provides a standardized way to analyze and communicate adversary behavior throughout the SOC lifecycle. By mapping detections and investigations to ATT&CK techniques, organizations improve detection coverage, strengthen threat hunting, and create more consistent incident documentation.
+
+In this project, repeated SSH authentication failures were mapped to **T1110 – Brute Force**, illustrating how Microsoft Sentinel detections can be aligned with industry-recognized adversary techniques to improve analysis and operational maturity.
+
+In the next chapter, we will explore **Production Improvements**, discussing how this lab implementation could be expanded into an enterprise-ready Microsoft Sentinel deployment with additional data sources, automation, detection tuning, and operational best practices.

@@ -1,0 +1,460 @@
+# Chapter 5: Microsoft Sentinel
+
+> *Building a Cloud-Native Security Information and Event Management (SIEM) and Security Orchestration, Automation, and Response (SOAR) Platform*
+
+---
+
+# Overview
+
+As organizations adopt cloud computing, hybrid infrastructure, remote workforces, and Software-as-a-Service (SaaS) platforms, traditional security monitoring approaches struggle to keep pace with the increasing volume, velocity, and variety of security telemetry. Security teams require a solution capable of collecting logs from diverse sources, correlating events across environments, detecting sophisticated attacks, and automating incident response.
+
+Microsoft Sentinel is Microsoft's cloud-native Security Information and Event Management (SIEM) and Security Orchestration, Automation, and Response (SOAR) platform. Built on Microsoft Azure, Sentinel enables organizations to centralize security monitoring, investigate threats, automate repetitive tasks, and improve their overall security posture without maintaining on-premises SIEM infrastructure.
+
+Unlike traditional SIEM platforms that require extensive hardware, storage planning, and software maintenance, Microsoft Sentinel leverages Azure's scalability, allowing organizations to monitor security events across cloud, hybrid, and on-premises environments from a single platform.
+
+---
+
+# What is Microsoft Sentinel?
+
+Microsoft Sentinel is a cloud-native security operations platform that combines:
+
+- Security Information and Event Management (SIEM)
+- Security Orchestration, Automation, and Response (SOAR)
+- Threat Intelligence
+- User and Entity Behavior Analytics (UEBA)
+- Machine Learning
+- Artificial Intelligence (AI)
+- Automated Investigation
+
+Sentinel enables security teams to collect telemetry from thousands of data sources, detect malicious activity, investigate incidents, and automate response actions.
+
+---
+
+# Why Microsoft Sentinel?
+
+Modern organizations face several challenges:
+
+- Large volumes of security logs
+- Multiple cloud providers
+- Hybrid infrastructure
+- Remote workforces
+- Increasing ransomware attacks
+- Credential theft
+- Insider threats
+- Compliance requirements
+
+Microsoft Sentinel addresses these challenges by providing:
+
+- Centralized security monitoring
+- Built-in threat detection
+- Threat hunting capabilities
+- Incident management
+- Automated response
+- Native Microsoft integration
+- Elastic cloud scalability
+
+---
+
+# Microsoft Sentinel Architecture
+
+Microsoft Sentinel is built on top of Azure Log Analytics Workspace.
+
+```
+Security Sources
+
+Azure Resources
+Windows Servers
+Linux Servers
+Firewalls
+Microsoft Defender
+Microsoft Entra ID
+Office 365
+AWS
+Google Cloud
+Applications
+Network Devices
+
+        │
+
+        ▼
+
+Azure Monitor
+
+        │
+
+        ▼
+
+Azure Log Analytics Workspace
+
+        │
+
+        ▼
+
+Microsoft Sentinel
+
+ ┌──────────────────────────────────┐
+ │                                  │
+ │ Analytics Rules                  │
+ │ Hunting Queries                  │
+ │ Workbooks                        │
+ │ Incidents                        │
+ │ Investigation Graph              │
+ │ Automation Rules                 │
+ │ Playbooks                        │
+ │ Threat Intelligence              │
+ │ UEBA                             │
+ │ Fusion Detection                 │
+ │                                  │
+ └──────────────────────────────────┘
+
+        │
+
+        ▼
+
+SOC Analyst
+
+        │
+
+        ▼
+
+Incident Response
+```
+
+---
+
+# Core Components
+
+Microsoft Sentinel consists of several integrated components that support the complete SOC lifecycle.
+
+---
+
+## Data Connectors
+
+Data Connectors import telemetry into Sentinel.
+
+Supported sources include:
+
+- Azure Resources
+- Microsoft Defender XDR
+- Microsoft Entra ID
+- Office 365
+- Azure Firewall
+- Windows Security Events
+- Linux Syslog
+- AWS CloudTrail
+- Google Cloud
+- Cisco
+- Palo Alto Networks
+- Fortinet
+- Custom REST APIs
+
+A well-designed SIEM deployment begins with selecting appropriate data connectors.
+
+---
+
+## Log Analytics Workspace
+
+Microsoft Sentinel stores all telemetry inside Azure Log Analytics Workspace.
+
+The workspace provides:
+
+- Centralized storage
+- Fast indexing
+- KQL query engine
+- Long-term retention
+- Historical investigations
+
+Every Sentinel capability depends on data stored within the workspace.
+
+---
+
+## Analytics Rules
+
+Analytics Rules convert KQL queries into security detections.
+
+Rules evaluate incoming telemetry and generate alerts when suspicious behavior matches predefined conditions.
+
+Example detections:
+
+- Brute-force authentication
+- Impossible travel
+- Privilege escalation
+- Malware execution
+- Multiple failed logins
+- Suspicious PowerShell activity
+
+Detection engineering focuses on designing effective analytics rules while minimizing false positives.
+
+---
+
+## Incidents
+
+Alerts generated by Analytics Rules are grouped into incidents.
+
+An incident represents a security event requiring analyst investigation.
+
+Incident details typically include:
+
+- Severity
+- Entities
+- Related alerts
+- Timeline
+- MITRE ATT&CK techniques
+- Investigation graph
+
+Grouping related alerts reduces analyst workload and provides a clearer understanding of attacker activity.
+
+---
+
+## Hunting
+
+Threat Hunting enables analysts to proactively search for malicious activity before alerts are generated.
+
+Unlike Analytics Rules, hunting queries do not automatically create incidents.
+
+Examples include:
+
+- Searching for failed SSH logins
+- Identifying unusual administrator activity
+- Detecting rare process executions
+- Investigating suspicious IP addresses
+- Reviewing lateral movement
+
+Threat hunting assumes an attacker may already be present within the environment.
+
+---
+
+## Workbooks
+
+Workbooks provide interactive dashboards for visualizing security data.
+
+Common dashboard content includes:
+
+- Authentication trends
+- Geographic login activity
+- Alert distribution
+- Incident status
+- Top affected devices
+- Threat intelligence indicators
+- MITRE ATT&CK coverage
+
+Workbooks help analysts identify trends that may not be obvious from individual alerts.
+
+---
+
+## Watchlists
+
+Watchlists allow organizations to enrich detections using custom datasets.
+
+Examples:
+
+- VIP users
+- High-value assets
+- Known malicious IP addresses
+- Corporate IP ranges
+- Service accounts
+- Third-party vendors
+
+Watchlists improve detection accuracy and reduce false positives.
+
+---
+
+## Automation Rules
+
+Automation Rules execute predefined actions when incidents occur.
+
+Examples include:
+
+- Assign incident ownership
+- Change incident severity
+- Add incident tags
+- Trigger playbooks
+- Close duplicate incidents
+
+Automation reduces repetitive administrative work for analysts.
+
+---
+
+## Playbooks
+
+Playbooks are automated workflows built using Azure Logic Apps.
+
+Common response actions include:
+
+- Block malicious IP addresses
+- Disable user accounts
+- Notify security teams
+- Create ServiceNow tickets
+- Send Microsoft Teams notifications
+- Update incident status
+
+Playbooks reduce response time and improve operational consistency.
+
+---
+
+## Threat Intelligence
+
+Microsoft Sentinel supports importing external threat intelligence.
+
+Threat Intelligence may include:
+
+- Malicious IP addresses
+- File hashes
+- Domains
+- URLs
+- Email addresses
+
+Sentinel automatically correlates threat intelligence indicators with collected telemetry.
+
+---
+
+## User and Entity Behavior Analytics (UEBA)
+
+UEBA uses machine learning to establish behavioral baselines.
+
+Examples include:
+
+- Unusual login locations
+- Rare administrative actions
+- Abnormal authentication patterns
+- Privilege abuse
+
+Behavioral analytics helps identify attacks that signature-based detection may miss.
+
+---
+
+## Fusion Detection
+
+Fusion combines alerts from multiple sources into higher-confidence incidents.
+
+Instead of investigating isolated alerts, Fusion identifies relationships between events.
+
+Examples include:
+
+- Phishing email
+- Credential theft
+- Suspicious login
+- Privilege escalation
+
+Together, these activities may indicate a coordinated attack.
+
+---
+
+# Investigation Workflow
+
+A typical Microsoft Sentinel investigation follows these steps:
+
+```
+Logs Collected
+
+↓
+
+Analytics Rules
+
+↓
+
+Alert Created
+
+↓
+
+Incident Created
+
+↓
+
+Analyst Reviews Entities
+
+↓
+
+KQL Investigation
+
+↓
+
+Threat Intelligence Enrichment
+
+↓
+
+MITRE Mapping
+
+↓
+
+Containment
+
+↓
+
+Recovery
+
+↓
+
+Lessons Learned
+```
+
+---
+
+# Lab Mapping
+
+During this project, Microsoft Sentinel was used to:
+
+- Create a Security Operations Center environment.
+- Connect an Azure Log Analytics Workspace.
+- Ingest custom authentication logs.
+- Execute KQL hunting queries.
+- Develop analytics rules.
+- Investigate repeated SSH authentication failures.
+- Analyze suspicious source IP addresses.
+- Map attacker behavior to MITRE ATT&CK.
+- Document incident response recommendations.
+
+This implementation demonstrates the complete workflow of a cloud-native SOC using Microsoft Sentinel.
+
+---
+
+# Best Practices
+
+When deploying Microsoft Sentinel:
+
+- Connect only required data sources.
+- Develop high-quality Analytics Rules.
+- Continuously tune detections.
+- Use Automation Rules to reduce manual work.
+- Apply Role-Based Access Control (RBAC).
+- Monitor data ingestion costs.
+- Integrate Threat Intelligence.
+- Review incidents regularly.
+- Document investigation procedures.
+- Conduct periodic detection validation.
+
+---
+
+# Common Challenges
+
+Organizations implementing Microsoft Sentinel often encounter:
+
+- Excessive alert volume
+- False positives
+- Poor-quality log sources
+- High ingestion costs
+- Inconsistent naming conventions
+- Limited KQL expertise
+- Incomplete data collection
+- Manual investigation processes
+
+Addressing these challenges requires ongoing tuning, governance, and analyst training.
+
+---
+
+# Key Takeaways
+
+- Microsoft Sentinel is Microsoft's cloud-native SIEM and SOAR platform.
+- It provides centralized security monitoring, threat detection, investigation, and automation.
+- Azure Log Analytics Workspace serves as the data foundation.
+- Analytics Rules convert KQL queries into security detections.
+- Workbooks, Hunting, Automation Rules, Playbooks, UEBA, and Threat Intelligence extend Sentinel's capabilities.
+- Effective Sentinel deployments require strong data collection, well-designed detections, and continuous operational improvement.
+
+---
+
+# Chapter Summary
+
+Microsoft Sentinel combines SIEM and SOAR capabilities into a single cloud-native platform, enabling organizations to collect security telemetry, detect threats, investigate incidents, and automate response actions. Its integration with Azure Monitor and Azure Log Analytics Workspace provides the scalability and flexibility required for modern Security Operations Centers.
+
+In the next chapter, we will examine **Log Ingestion**, exploring how security telemetry is collected, normalized, and stored within Microsoft Sentinel using native connectors, Azure Monitor Agents, Data Collection Rules, and custom ingestion methods.
