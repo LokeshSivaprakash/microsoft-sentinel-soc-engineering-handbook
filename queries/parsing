@@ -1,1 +1,181 @@
+# Parsing
 
+> *Building reliable detections starts with understanding and validating your data.*
+
+---
+
+# Overview
+
+Before analysts can hunt threats, engineer detections, or investigate incidents, they must first ensure that security telemetry is being collected correctly. Parsing is the process of validating, inspecting, and extracting meaningful information from raw log data.
+
+In Microsoft Sentinel, effective parsing transforms unstructured or semi-structured logs into data that can be searched, correlated, and analyzed using Kusto Query Language (KQL). Proper parsing improves detection accuracy, reduces false positives, and enables efficient incident investigations.
+
+This section demonstrates the queries used to validate data ingestion and prepare custom SSH authentication logs for analysis.
+
+---
+
+# Objectives
+
+The parsing queries in this handbook are designed to:
+
+- Verify successful log ingestion
+- Inspect raw log records
+- Validate event volume
+- Extract important fields from authentication logs
+- Prepare data for threat hunting and detection engineering
+
+---
+
+# Workflow
+
+```
+Log Source
+     │
+     ▼
+Azure Monitor
+     │
+     ▼
+Log Analytics Workspace
+     │
+     ▼
+Validate Ingestion
+     │
+     ▼
+Preview Raw Logs
+     │
+     ▼
+Count Events
+     │
+     ▼
+Extract Fields
+     │
+     ▼
+Threat Hunting
+     │
+     ▼
+Detection Engineering
+```
+
+---
+
+# Query 1 — Validate Ingestion
+
+## Purpose
+
+The first step in any Microsoft Sentinel deployment is verifying that telemetry is successfully reaching the Log Analytics Workspace.
+
+This query checks whether recent events exist in the custom table.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where TimeGenerated > ago(24h)
+| summarize TotalEvents = count()
+```
+
+### Expected Output
+
+| TotalEvents |
+|-------------|
+| 291 |
+
+If the result is **0**, investigate the ingestion pipeline before continuing with detection development.
+
+---
+
+# Query 2 — Preview Raw Data
+
+## Purpose
+
+Inspect raw events before writing parsing logic or detections.
+
+Understanding the structure of incoming logs helps identify useful fields such as usernames, IP addresses, timestamps, and authentication messages.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| take 10
+```
+
+### Expected Output
+
+| TimeGenerated | Computer | RawData |
+|---------------|----------|---------|
+| ... | ... | Failed password for invalid user admin from 203.0.113.77 |
+
+This query is commonly used during onboarding of new log sources.
+
+---
+
+# Query 3 — Count Events
+
+## Purpose
+
+Measure the number of authentication events received during a specified time window.
+
+This provides a quick indication of ingestion health and log volume.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| summarize EventCount = count()
+```
+
+### Example Output
+
+| EventCount |
+|------------|
+| 291 |
+
+Analysts often compare event counts across time periods to detect missing telemetry or unexpected changes in logging behavior.
+
+---
+
+# Query 4 — Extract Source IP
+
+## Purpose
+
+Authentication logs often contain valuable information embedded within raw text. This query extracts the source IP address using a regular expression, making it easier to aggregate and investigate activity.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)", 1, RawData)
+| project TimeGenerated, Computer, SourceIP, RawData
+```
+
+### Example Output
+
+| TimeGenerated | Computer | SourceIP |
+|---------------|----------|----------|
+| ... | server01 | 203.0.113.77 |
+
+The extracted `SourceIP` field is reused throughout subsequent hunting and detection queries.
+
+---
+
+# Best Practices
+
+When validating new log sources:
+
+- Confirm the correct table name.
+- Verify the selected time range.
+- Check that expected fields are present.
+- Validate event volume before creating detections.
+- Parse important fields into reusable columns.
+- Document any ingestion or parsing issues.
+
+---
+
+# Key Takeaways
+
+- Parsing is the foundation of effective threat detection.
+- Always validate telemetry before writing KQL detections.
+- Inspect raw logs to understand their structure.
+- Extract commonly used fields early to simplify later analysis.
+- Well-parsed data improves hunting, investigation, and incident response.
