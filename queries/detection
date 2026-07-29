@@ -1,3 +1,213 @@
-brute-force-detection.kql
-failed-login-threshold.kql
-high-risk-source-ip.kql
+# Detection
+
+> *Detection engineering transforms observed attacker behavior into repeatable, automated security alerts.*
+
+---
+
+# Overview
+
+Detection engineering is the process of designing, developing, and maintaining analytics that identify malicious or suspicious activity within an environment. In Microsoft Sentinel, detections are implemented as Analytics Rules that continuously evaluate telemetry and generate alerts when predefined conditions are met.
+
+Unlike threat hunting, which is analyst-driven and exploratory, detection engineering automates the identification of known attack patterns, allowing security teams to respond more quickly and consistently.
+
+This section demonstrates how threat hunting queries can be refined into production-ready detections for SSH authentication attacks.
+
+---
+
+# Objectives
+
+The detection queries in this handbook are designed to:
+
+- Detect brute-force authentication attempts
+- Identify high-risk source IP addresses
+- Reduce false positives
+- Generate actionable alerts
+- Support incident response workflows
+
+---
+
+# Detection Engineering Workflow
+
+```
+Security Logs
+      │
+      ▼
+Threat Hunting
+      │
+      ▼
+Develop Detection Logic
+      │
+      ▼
+Test & Validate
+      │
+      ▼
+Tune Thresholds
+      │
+      ▼
+Deploy Analytics Rule
+      │
+      ▼
+Generate Alert
+      │
+      ▼
+SOC Investigation
+```
+
+---
+
+# Detection 1 — Brute Force Authentication
+
+## Purpose
+
+Detect source IP addresses that repeatedly fail SSH authentication within a defined period.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize FailedAttempts=count() by SourceIP
+| where FailedAttempts >= 5
+| order by FailedAttempts desc
+```
+
+### Example Output
+
+| SourceIP | FailedAttempts |
+|----------|---------------:|
+|203.0.113.77|28|
+
+### Why It Matters
+
+Multiple failed authentication attempts from the same IP address are commonly associated with brute-force attacks.
+
+---
+
+# Detection 2 — High-Risk Source IP
+
+## Purpose
+
+Identify external IP addresses generating excessive authentication failures.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize FailedAttempts=count() by SourceIP
+| where FailedAttempts > 20
+```
+
+### Why It Matters
+
+A significantly higher number of failures than normal often indicates automated attack activity.
+
+---
+
+# Detection 3 — Authentication Spike
+
+## Purpose
+
+Detect sudden increases in authentication failures over time.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| summarize FailedAttempts=count() by bin(TimeGenerated,15m)
+| where FailedAttempts > 25
+```
+
+### Why It Matters
+
+Sharp spikes in authentication activity frequently indicate scanning or password-spraying campaigns.
+
+---
+
+# Detection 4 — Successful Login After Multiple Failures
+
+## Purpose
+
+Identify accounts that successfully authenticate after several failed login attempts.
+
+### Query
+
+```kusto
+let FailedIPs =
+MeridianLogs_CL
+| where RawData has "Failed password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| summarize FailedAttempts=count() by SourceIP
+| where FailedAttempts >= 5;
+
+MeridianLogs_CL
+| where RawData has "Accepted password"
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| join kind=inner FailedIPs on SourceIP
+```
+
+### Why It Matters
+
+A successful login following repeated failures may indicate compromised credentials.
+
+---
+
+# Production Considerations
+
+Before deploying an Analytics Rule, consider:
+
+- Detection threshold
+- Query frequency
+- Lookup period
+- Alert suppression
+- Entity mapping
+- False-positive tuning
+- Performance optimization
+
+Well-designed detections balance sensitivity with operational efficiency.
+
+---
+
+# Analytics Rule Configuration
+
+| Setting | Recommended Value |
+|---------|-------------------|
+| Rule Type | Scheduled |
+| Query Frequency | Every 5 minutes |
+| Lookup Period | Last 1 hour |
+| Severity | Medium |
+| Trigger | Greater than 0 results |
+| Entity Mapping | IP Address |
+
+---
+
+# MITRE ATT&CK Mapping
+
+| Technique | Description |
+|-----------|-------------|
+| T1110 | Brute Force |
+| T1078 | Valid Accounts |
+| T1021 | Remote Services |
+
+---
+
+# Best Practices
+
+- Build detections from validated hunting queries.
+- Start with conservative thresholds and tune over time.
+- Minimize false positives through testing.
+- Map detections to the MITRE ATT&CK framework.
+- Review and update analytics regularly as attack patterns evolve.
+
+---
+
+# Key Takeaways
+
+- Detection engineering automates the identification of known threats.
+- Effective detections begin with well-understood telemetry.
+- Threshold tuning is essential to reduce alert fatigue.
+- Analytics Rules should be continuously reviewed and improved.
+- High-quality detections enable faster and more consistent incident response.
