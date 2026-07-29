@@ -1,156 +1,202 @@
-# Chapter 1 – Introduction
+# Chapter 1: Introduction
 
-# Microsoft Sentinel SOC Engineering Handbook
-
-> Building a Cloud-Native Security Operations Center (SOC) using Microsoft Sentinel
+> *Building a Cloud-Native Security Operations Center (SOC) using Microsoft Sentinel*
 
 ---
 
-# Purpose
+# Overview
 
-Modern organizations generate enormous volumes of security telemetry every second. Authentication attempts, firewall events, endpoint detections, cloud activities, identity changes, and application logs all contribute to a continuously growing stream of operational data. While this information is valuable, it becomes useful only when it can be transformed into actionable security intelligence.
+Organizations today operate in increasingly complex technology environments that include cloud infrastructure, hybrid networks, remote workforces, mobile devices, and Software-as-a-Service (SaaS) platforms. Every login attempt, network connection, application request, and administrative action generates security telemetry that can provide valuable insight into an organization's security posture.
 
-This handbook documents the design, implementation, and operation of a cloud-native Security Operations Center (SOC) using Microsoft Sentinel. It is intended to bridge the gap between theoretical knowledge and practical engineering by explaining not only *how* Microsoft Sentinel is configured, but also *why* architectural and detection decisions are made.
+Managing this continuously growing volume of data requires more than simply collecting logs. Security teams must be able to centralize, analyze, correlate, and investigate events to identify malicious activity before it impacts business operations.
 
-Rather than serving as a simple walkthrough, this repository is organized as a technical reference that follows the lifecycle of a security event—from data ingestion through investigation and response.
+Microsoft Sentinel is Microsoft's cloud-native Security Information and Event Management (SIEM) and Security Orchestration, Automation, and Response (SOAR) platform. It enables organizations to collect security data from multiple sources, detect suspicious behavior, investigate incidents, automate response actions, and improve their overall security posture.
 
----
-
-# Why This Project?
-
-Many Microsoft Sentinel tutorials focus on completing individual tasks such as connecting a data source or creating an analytics rule. While those exercises are useful for learning the interface, they rarely explain how the individual components work together as part of an operational SOC.
-
-This project was created to provide a broader engineering perspective.
-
-It explains:
-
-- How security logs are collected
-- How Azure Monitor processes telemetry
-- How Azure Log Analytics stores and indexes data
-- How Microsoft Sentinel performs detection and correlation
-- How Kusto Query Language (KQL) is used for threat hunting
-- How incidents are investigated
-- How detections can be improved for production environments
-
-The goal is to understand the reasoning behind each configuration and detection rather than simply reproducing a lab.
+This handbook documents the design and implementation of a Security Operations Center (SOC) using Microsoft Sentinel. Rather than focusing only on configuration steps, it explains the architectural concepts, engineering decisions, and security workflows that support an effective SOC.
 
 ---
 
-# Target Audience
+# Purpose of This Handbook
 
-This handbook is intended for:
+The objective of this handbook is to provide a structured understanding of Microsoft Sentinel by combining theoretical concepts with practical implementation.
 
-- SOC Analysts
-- Security Engineers
-- Detection Engineers
-- Cloud Security Engineers
-- Students learning Microsoft Sentinel
-- Professionals preparing for cybersecurity interviews
-- Anyone interested in cloud-native SIEM platforms
+Throughout this project, readers will learn:
+
+- How security telemetry is collected from multiple sources.
+- How Azure Monitor and Azure Log Analytics process and store security data.
+- How Microsoft Sentinel performs detection and correlation.
+- How Kusto Query Language (KQL) is used to investigate security events.
+- How detection rules are developed and improved.
+- How analysts investigate incidents.
+- How cybersecurity events are mapped to the MITRE ATT&CK framework.
+- How incident response activities reduce organizational risk.
+
+Instead of presenting isolated laboratory exercises, this handbook demonstrates how individual Microsoft Sentinel components work together as part of a complete Security Operations Center.
 
 ---
 
-# Learning Objectives
+# Why Microsoft Sentinel?
+
+Organizations require a centralized platform capable of monitoring security events across cloud services, on-premises infrastructure, identities, applications, and endpoints.
+
+Microsoft Sentinel provides several advantages:
+
+- Cloud-native architecture with no on-premises infrastructure to maintain.
+- Centralized log collection from diverse security sources.
+- Powerful analytics using Kusto Query Language (KQL).
+- Built-in threat hunting capabilities.
+- Native integration with Microsoft security products.
+- Automated incident response using Logic Apps.
+- MITRE ATT&CK mapping for attacker behavior analysis.
+- Scalability for enterprise environments.
+
+These capabilities allow security teams to detect and respond to threats more efficiently while reducing operational complexity.
+
+---
+
+# Project Objectives
+
+This repository was developed to demonstrate practical experience with Microsoft Sentinel and cloud-based Security Operations Center workflows.
+
+The primary objectives include:
+
+- Deploy Microsoft Sentinel in Azure.
+- Configure Azure Log Analytics Workspace.
+- Ingest custom authentication logs.
+- Develop KQL queries for threat detection.
+- Create Analytics Rules.
+- Investigate suspicious authentication events.
+- Perform threat hunting activities.
+- Map detections to the MITRE ATT&CK framework.
+- Recommend incident response actions.
+- Document engineering decisions and best practices.
+
+---
+
+# Learning Outcomes
 
 After completing this handbook, readers should be able to:
 
-- Explain the architecture of Microsoft Sentinel
-- Understand the role of Azure Monitor and Azure Log Analytics
-- Write and optimize Kusto Query Language (KQL) queries
-- Build analytics rules for threat detection
-- Investigate authentication events
-- Perform threat hunting activities
-- Map attacker behavior to the MITRE ATT&CK framework
-- Recommend containment and response actions
-- Identify opportunities to improve detections in production environments
+- Explain the architecture of Microsoft Sentinel.
+- Describe how Azure Monitor collects security telemetry.
+- Understand Azure Log Analytics Workspace.
+- Write effective KQL queries.
+- Build detection logic for security events.
+- Investigate authentication-related incidents.
+- Perform threat hunting using Microsoft Sentinel.
+- Apply MITRE ATT&CK techniques during investigations.
+- Recommend containment and remediation strategies.
+- Understand the workflow of a Security Operations Center.
+
+---
+
+# Intended Audience
+
+This handbook is designed for:
+
+- SOC Analysts
+- Security Engineers
+- Cloud Security Engineers
+- Detection Engineers
+- Incident Responders
+- Students learning Microsoft Sentinel
+- IT professionals transitioning into cybersecurity
+- Anyone preparing for Microsoft Sentinel or SOC-related interviews
+
+No prior experience with Microsoft Sentinel is assumed, although a basic understanding of networking, operating systems, and cybersecurity concepts will be beneficial.
 
 ---
 
 # Project Scope
 
-The implementation documented in this repository covers the complete lifecycle of an authentication-based security investigation.
+The implementation documented in this repository focuses on a practical Microsoft Sentinel deployment that demonstrates the end-to-end lifecycle of security monitoring and incident investigation.
 
 The project includes:
 
-- Azure Resource Group deployment
-- Azure Log Analytics Workspace configuration
+- Azure Resource Group creation
+- Azure Log Analytics Workspace deployment
 - Microsoft Sentinel onboarding
 - Custom log ingestion
-- KQL query development
-- SSH brute-force detection
-- Threat hunting
+- Authentication log analysis
+- KQL-based threat hunting
+- Detection engineering
+- Analytics Rule creation
 - Incident investigation
 - MITRE ATT&CK mapping
 - Incident response recommendations
 
-Although the example scenario focuses on SSH authentication logs, the concepts introduced throughout this handbook can be applied to many different data sources and detection scenarios.
+Although the primary example involves SSH authentication logs, the methodologies described throughout this handbook are applicable to a wide variety of security monitoring scenarios.
 
 ---
 
-# Engineering Philosophy
+# Documentation Structure
 
-Throughout this repository, every technical decision is explained using the following framework:
-
-## What?
-
-What does this technology or feature do?
-
-## Why?
-
-Why does it exist?
-
-What problem does it solve?
-
-## How?
-
-How is it implemented?
-
-How does it interact with the rest of the SOC architecture?
-
-## Production Considerations
-
-How would this approach change in an enterprise environment?
-
-## Lessons Learned
-
-What are the limitations?
-
-How could the solution be improved?
-
----
-
-# Handbook Roadmap
-
-The remainder of this handbook is organized as follows:
+This handbook is organized into the following chapters:
 
 | Chapter | Topic |
 |----------|-------|
+| 01 | Introduction |
 | 02 | SOC Fundamentals |
 | 03 | Azure Monitor |
 | 04 | Azure Log Analytics Workspace |
 | 05 | Microsoft Sentinel |
 | 06 | Log Ingestion |
-| 07 | KQL Fundamentals |
+| 07 | Kusto Query Language (KQL) |
 | 08 | Threat Hunting |
 | 09 | Detection Engineering |
 | 10 | Analytics Rules |
 | 11 | Incident Investigation |
 | 12 | Incident Response |
-| 13 | MITRE ATT&CK |
+| 13 | MITRE ATT&CK Mapping |
 | 14 | Production Improvements |
+| 15 | Interview Guide |
+
+Each chapter builds on the previous one, progressing from foundational concepts to practical implementation and advanced operational considerations.
 
 ---
 
-# About the Lab Environment
+# Engineering Philosophy
 
-The demonstrations throughout this handbook were performed in a Microsoft Azure environment using Microsoft Sentinel connected to an Azure Log Analytics Workspace. Authentication logs were ingested into a custom table and analyzed using Kusto Query Language (KQL) to simulate a Security Operations Center workflow.
+Throughout this handbook, every concept is explained using five guiding questions:
 
-Where appropriate, notes are included to distinguish between educational lab configurations and practices that would typically be used in a production enterprise deployment.
+1. **What is it?**  
+   Define the technology or concept.
+
+2. **Why is it important?**  
+   Explain the problem it solves.
+
+3. **How does it work?**  
+   Describe the underlying architecture or workflow.
+
+4. **How is it implemented?**  
+   Demonstrate the practical configuration or usage.
+
+5. **How would it be used in production?**  
+   Discuss enterprise considerations, scalability, and best practices.
+
+This approach emphasizes understanding the reasoning behind engineering decisions rather than simply following configuration steps.
+
+---
+
+# Prerequisites
+
+To reproduce the environment described in this handbook, the following are recommended:
+
+- Microsoft Azure subscription
+- Basic understanding of cloud computing
+- Familiarity with networking concepts
+- Basic Linux administration knowledge
+- Introductory cybersecurity knowledge
+- Willingness to learn Kusto Query Language (KQL)
 
 ---
 
 # Conclusion
 
-Security Operations Centers are more than dashboards and alerts. Effective security monitoring requires understanding how telemetry is collected, how detections are engineered, how investigations are performed, and how incidents are managed.
+Modern cybersecurity depends on the ability to transform large volumes of security telemetry into meaningful insights. A Security Operations Center achieves this through continuous monitoring, detection engineering, threat hunting, investigation, and incident response.
 
-The following chapters progressively build this knowledge, beginning with the fundamentals of Security Operations Centers and Security Information and Event Management (SIEM) platforms before moving into Microsoft Sentinel-specific implementation details.
+Microsoft Sentinel provides a cloud-native platform that enables organizations to perform these activities efficiently while integrating with the broader Microsoft security ecosystem.
+
+This handbook begins with the foundational concepts required to understand Microsoft Sentinel and progressively builds toward practical implementation, detection engineering, and real-world security operations.
+
+In the next chapter, we will explore the fundamentals of Security Operations Centers (SOCs), including their architecture, responsibilities, operational workflows, and the role of SIEM platforms in modern cybersecurity.
