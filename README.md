@@ -155,7 +155,6 @@ assets/
 | 12 - Incident Response | Containment |
 | 13 - MITRE ATT&CK | Threat Mapping |
 | 14 - Production Improvements | Enterprise Enhancements |
-| 15 - Interview Guide | Technical Interview Preparation |
 
 ---
 
@@ -306,7 +305,7 @@ This repository was developed as a practical cybersecurity engineering project t
 **Lokesh Sivaprakash**
 
 Master of Information Systems  
-Cloud Security | Detection Engineering | SOC | Microsoft Sentinel | Azure | KQL
+Cybersecurity | Detection Engineering | SOC | Microsoft Sentinel | Azure | KQL
 
 ---
 
