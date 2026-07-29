@@ -1,0 +1,308 @@
+# Chapter 4: Azure Log Analytics Workspace
+
+> *Understanding the centralized data platform that powers Microsoft Sentinel.*
+
+---
+
+# Overview
+
+Modern Security Operations Centers (SOCs) depend on the ability to collect, store, search, and analyze massive volumes of security telemetry. Every authentication attempt, firewall event, endpoint alert, application log, and cloud activity contributes to an organization's security visibility.
+
+Azure Log Analytics Workspace is Microsoft's centralized log storage and analytics platform. It receives telemetry from Azure Monitor, stores the data in a structured format, indexes it for efficient searching, and provides the query engine used by Microsoft Sentinel.
+
+Although Microsoft Sentinel is often viewed as the primary security platform, its analytics and detection capabilities rely entirely on the data stored within Azure Log Analytics Workspace. Without a properly configured workspace, Microsoft Sentinel cannot perform threat hunting, generate alerts, investigate incidents, or visualize security data.
+
+---
+
+# What is Azure Log Analytics Workspace?
+
+Azure Log Analytics Workspace is a cloud-based repository for operational and security telemetry. It provides centralized storage, indexing, and querying of logs collected from Azure resources, virtual machines, applications, network devices, and external systems.
+
+Rather than storing data in isolated locations, Log Analytics consolidates telemetry into a single workspace where it can be searched using **Kusto Query Language (KQL)**.
+
+The workspace serves as the data foundation for several Azure services, including:
+
+- Microsoft Sentinel
+- Azure Monitor
+- Microsoft Defender for Cloud
+- Azure Automation
+- Azure Update Management
+- Azure Change Tracking
+
+---
+
+# Why Log Analytics Workspace Matters
+
+Organizations often operate hundreds or thousands of systems across multiple environments. If logs remain distributed across those systems, security investigations become slow and inefficient.
+
+Centralized log storage enables organizations to:
+
+- Search security events from one location.
+- Correlate events across multiple systems.
+- Detect suspicious behavior.
+- Perform historical investigations.
+- Meet audit and compliance requirements.
+- Support long-term forensic analysis.
+
+For Microsoft Sentinel, the workspace acts as the single source of truth for security telemetry.
+
+---
+
+# Architecture
+
+The relationship between Azure Monitor, Log Analytics Workspace, and Microsoft Sentinel is illustrated below.
+
+```text
+Azure Resources
+Applications
+Virtual Machines
+Firewalls
+Identity Providers
+External Systems
+        │
+        ▼
+Azure Monitor
+        │
+        ▼
+Azure Log Analytics Workspace
+        │
+        ├───────────────► Kusto Query Language (KQL)
+        │
+        ├───────────────► Microsoft Sentinel
+        │
+        ├───────────────► Workbooks
+        │
+        ├───────────────► Analytics Rules
+        │
+        ├───────────────► Threat Hunting
+        │
+        └───────────────► Incident Investigation
+```
+
+The workspace is the central hub where telemetry becomes actionable security intelligence.
+
+---
+
+# How Data is Stored
+
+Log Analytics organizes information into **tables**.
+
+Each table stores a specific category of telemetry.
+
+Examples include:
+
+| Table | Purpose |
+|--------|---------|
+| SecurityEvent | Windows Security Logs |
+| Syslog | Linux Syslog Events |
+| Heartbeat | Agent Health |
+| AzureActivity | Azure Administrative Events |
+| SigninLogs | Microsoft Entra ID Sign-ins |
+| AuditLogs | Identity Audit Events |
+| CommonSecurityLog | Firewall and Network Logs |
+| MeridianLogs_CL | Custom Authentication Logs (Lab) |
+
+Each table contains rows representing individual events and columns representing attributes such as timestamps, usernames, IP addresses, and event details.
+
+---
+
+# Custom Log Tables
+
+Organizations often collect telemetry that is not provided by default Azure connectors.
+
+Log Analytics supports **custom log ingestion**, allowing organizations to store proprietary application logs, appliance logs, or security events.
+
+In this project, authentication logs were imported into the custom table:
+
+```
+MeridianLogs_CL
+```
+
+This table contains fields such as:
+
+- RawData
+- EventTime
+- Computer
+- TimeGenerated
+
+These logs were later analyzed using Kusto Query Language (KQL) to identify suspicious authentication activity.
+
+---
+
+# Kusto Query Language (KQL)
+
+Kusto Query Language (KQL) is the primary language used to search and analyze data stored in Log Analytics Workspace.
+
+Examples of KQL tasks include:
+
+- Searching authentication failures.
+- Counting login attempts.
+- Filtering events.
+- Correlating multiple data sources.
+- Detecting attack patterns.
+- Supporting incident investigations.
+
+Example query:
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| summarize Attempts = count() by Computer
+```
+
+KQL is one of the most important skills for Microsoft Sentinel engineers because every investigation begins with querying stored telemetry.
+
+---
+
+# Data Retention
+
+Organizations must determine how long telemetry should remain available.
+
+Retention policies affect:
+
+- Storage costs.
+- Compliance requirements.
+- Historical investigations.
+- Threat hunting.
+- Digital forensics.
+
+Longer retention improves investigative capabilities but increases storage costs.
+
+Many organizations balance operational needs with regulatory requirements when defining retention periods.
+
+---
+
+# Data Ingestion
+
+Logs enter the workspace through multiple mechanisms.
+
+Common ingestion methods include:
+
+- Azure Monitor
+- Azure Monitor Agent (AMA)
+- Data Collection Rules (DCR)
+- Diagnostic Settings
+- Data Connectors
+- REST APIs
+- Custom ingestion scripts
+
+During this project, authentication logs were imported using a custom Python script that submitted log data through the Azure Data Collector API.
+
+---
+
+# Data Indexing
+
+After ingestion, Log Analytics indexes incoming telemetry to improve query performance.
+
+Indexing enables:
+
+- Faster searches
+- Efficient filtering
+- Correlation across datasets
+- Reduced query execution time
+
+Efficient indexing is especially important in enterprise environments where billions of events may be stored.
+
+---
+
+# Workspace Security
+
+Because Log Analytics stores sensitive operational and security data, access must be carefully controlled.
+
+Security best practices include:
+
+- Enable Role-Based Access Control (RBAC).
+- Grant least-privilege permissions.
+- Monitor administrative actions.
+- Enable diagnostic logging.
+- Protect API keys and shared secrets.
+- Audit access regularly.
+
+Only authorized personnel should have permission to query or modify workspace data.
+
+---
+
+# Cost Considerations
+
+Log Analytics pricing is primarily based on:
+
+- Data ingestion volume
+- Data retention period
+- Query usage (in some scenarios)
+
+To optimize costs:
+
+- Collect only required telemetry.
+- Filter unnecessary logs before ingestion.
+- Configure appropriate retention policies.
+- Archive older data when possible.
+- Monitor daily ingestion trends.
+
+Cost optimization is an important responsibility for cloud security engineers working in enterprise environments.
+
+---
+
+# Integration with Microsoft Sentinel
+
+Microsoft Sentinel is built directly on top of Azure Log Analytics Workspace.
+
+The workflow is:
+
+1. Azure Monitor collects telemetry.
+2. Logs are stored in Log Analytics Workspace.
+3. KQL queries analyze stored data.
+4. Analytics Rules evaluate query results.
+5. Sentinel generates alerts.
+6. Incidents are created.
+7. Analysts investigate and respond.
+
+Every Sentinel feature ultimately relies on data stored within the workspace.
+
+---
+
+# Lab Mapping
+
+In this project, Azure Log Analytics Workspace was used to:
+
+- Store custom authentication logs.
+- Execute KQL queries.
+- Validate log ingestion.
+- Support Analytics Rules.
+- Investigate failed SSH login attempts.
+- Analyze suspicious IP addresses.
+
+The workspace acted as the central repository supporting every stage of the Microsoft Sentinel investigation.
+
+---
+
+# Best Practices
+
+When designing a Log Analytics Workspace:
+
+- Organize workspaces according to organizational requirements.
+- Apply consistent naming conventions.
+- Monitor ingestion health.
+- Optimize retention policies.
+- Protect workspace access using RBAC.
+- Validate data ingestion regularly.
+- Remove unused data sources.
+
+---
+
+# Key Takeaways
+
+- Azure Log Analytics Workspace is the centralized repository for security telemetry.
+- All Microsoft Sentinel analytics depend on the data stored in the workspace.
+- Logs are organized into structured tables that can be queried using KQL.
+- Proper workspace configuration improves performance, security, and investigation efficiency.
+- Managing data retention, ingestion, and access is essential for operating a secure and cost-effective SOC.
+
+---
+
+# Chapter Summary
+
+Azure Log Analytics Workspace serves as the data foundation of Microsoft Sentinel by storing, indexing, and enabling analysis of security telemetry collected from Azure Monitor and connected systems.
+
+Understanding how the workspace stores and organizes data is essential before developing analytics rules, performing threat hunting, or investigating incidents.
+
+In the next chapter, we will examine **Microsoft Sentinel**, exploring its architecture, core capabilities, incident management features, analytics engine, automation options, and its role as a cloud-native SIEM and SOAR platform.
