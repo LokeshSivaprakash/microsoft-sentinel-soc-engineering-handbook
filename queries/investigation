@@ -1,3 +1,228 @@
-incident-investigation.kql
-timeline-analysis.kql
-host-investigation.kql
+# Investigation
+
+> *Security investigations transform alerts into actionable intelligence by determining whether suspicious activity represents a genuine security incident.*
+
+---
+
+# Overview
+
+Security investigations begin after an alert has been generated or suspicious activity has been identified through threat hunting. The objective is to collect evidence, determine the scope of the activity, assess its impact, and decide whether an incident requires containment or remediation.
+
+Microsoft Sentinel provides investigators with powerful Kusto Query Language (KQL) capabilities that enable rapid analysis of authentication logs, user activity, source IP addresses, and event timelines.
+
+This section demonstrates investigation techniques using SSH authentication events collected within the Sentinel SOC lab.
+
+---
+
+# Objectives
+
+The investigation queries in this handbook are designed to:
+
+- Validate security alerts
+- Identify affected systems
+- Analyze suspicious IP addresses
+- Build event timelines
+- Determine the scope of an attack
+- Collect evidence for incident response
+
+---
+
+# Investigation Workflow
+
+```
+Analytics Alert
+       │
+       ▼
+Validate Alert
+       │
+       ▼
+Identify Source IP
+       │
+       ▼
+Analyze Target Systems
+       │
+       ▼
+Build Event Timeline
+       │
+       ▼
+Determine Attack Scope
+       │
+       ▼
+Document Findings
+       │
+       ▼
+Incident Response
+```
+
+---
+
+# Investigation 1 — Review Failed Authentication Attempts
+
+## Purpose
+
+Review all failed SSH authentication attempts to understand the nature of the activity.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Failed password"
+| project TimeGenerated, Computer, RawData
+| order by TimeGenerated asc
+```
+
+### Why It Matters
+
+This provides investigators with the initial evidence needed to understand the authentication failures and identify attack patterns.
+
+---
+
+# Investigation 2 — Investigate a Suspicious Source IP
+
+## Purpose
+
+Review all events associated with a specific source IP address.
+
+### Query
+
+```kusto
+let SuspiciousIP = "203.0.113.77";
+
+MeridianLogs_CL
+| extend SourceIP = extract(@"from ([0-9.]+)",1,RawData)
+| where SourceIP == SuspiciousIP
+| project TimeGenerated, Computer, RawData
+| order by TimeGenerated asc
+```
+
+### Why It Matters
+
+Reviewing all activity from a single IP address helps determine whether the behavior is isolated or part of a larger attack.
+
+---
+
+# Investigation 3 — Build an Event Timeline
+
+## Purpose
+
+Create a chronological timeline of authentication activity.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| project TimeGenerated, Computer, RawData
+| order by TimeGenerated asc
+```
+
+### Why It Matters
+
+Event timelines allow analysts to reconstruct attacker activity and understand the sequence of events leading to an alert.
+
+---
+
+# Investigation 4 — Identify Targeted Systems
+
+## Purpose
+
+Determine which systems experienced the highest volume of authentication events.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| summarize TotalEvents = count() by Computer
+| order by TotalEvents desc
+```
+
+### Example Output
+
+| Computer | Total Events |
+|----------|-------------:|
+| server01 | 175 |
+| server02 | 116 |
+
+### Why It Matters
+
+Identifying frequently targeted systems helps prioritize investigative efforts and assess business impact.
+
+---
+
+# Investigation 5 — Search for Successful Authentication
+
+## Purpose
+
+Determine whether repeated failed login attempts were eventually followed by a successful authentication.
+
+### Query
+
+```kusto
+MeridianLogs_CL
+| where RawData has "Accepted password"
+| project TimeGenerated, Computer, RawData
+```
+
+### Why It Matters
+
+A successful login after numerous failed attempts may indicate that an attacker successfully obtained valid credentials.
+
+---
+
+# Investigation Checklist
+
+During an investigation, analysts should answer the following questions:
+
+- What triggered the alert?
+- Which source IP initiated the activity?
+- Which systems were targeted?
+- Did authentication eventually succeed?
+- How long did the activity continue?
+- Is similar activity occurring elsewhere?
+- Does the activity align with known attack techniques?
+
+---
+
+# Evidence Collection
+
+Key artifacts collected during an investigation include:
+
+- Source IP addresses
+- Hostnames
+- Authentication logs
+- Event timestamps
+- User accounts
+- Alert details
+- Relevant KQL query results
+
+Proper evidence collection supports both incident response and post-incident analysis.
+
+---
+
+# MITRE ATT&CK Mapping
+
+| Technique | Description |
+|-----------|-------------|
+| T1110 | Brute Force |
+| T1078 | Valid Accounts |
+| T1021 | Remote Services |
+
+---
+
+# Best Practices
+
+- Validate alerts before escalating incidents.
+- Build a complete timeline of events.
+- Correlate activity across multiple hosts and IP addresses.
+- Preserve evidence throughout the investigation.
+- Document findings clearly for future reference.
+- Use investigation results to improve future detections.
+
+---
+
+# Key Takeaways
+
+- Investigation transforms alerts into actionable security intelligence.
+- Timelines provide valuable context for understanding attacker behavior.
+- Correlating events across systems improves visibility into attack scope.
+- Thorough documentation supports effective incident response.
+- Lessons learned from investigations should feed back into threat hunting and detection engineering.
