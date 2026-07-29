@@ -1,1 +1,172 @@
+# Project Report
 
+> *A comprehensive summary of the Microsoft Sentinel Security Operations Center (SOC) implementation, highlighting the architecture, deployment process, threat detection workflow, and key outcomes.*
+
+---
+
+# Executive Summary
+
+This project demonstrates the deployment of a Microsoft Sentinel Security Operations Center (SOC) using Azure Log Analytics and custom SSH authentication logs. The environment was configured to ingest security telemetry, perform threat hunting with Kusto Query Language (KQL), develop detection logic, investigate suspicious activity, and operationalize detections using Analytics Rules.
+
+The project follows a realistic SOC workflow and showcases the practical application of Microsoft Sentinel for security monitoring and incident detection.
+
+---
+
+# Project Objectives
+
+The primary objectives of this project were to:
+
+- Deploy Microsoft Sentinel in Azure
+- Configure a Log Analytics Workspace
+- Ingest custom SSH authentication logs
+- Perform threat hunting using KQL
+- Detect brute-force attacks
+- Investigate suspicious source IP addresses
+- Create a Scheduled Analytics Rule
+- Document the complete engineering workflow
+
+---
+
+# Environment
+
+| Component | Configuration |
+|-----------|---------------|
+| Cloud Platform | Microsoft Azure |
+| SIEM | Microsoft Sentinel |
+| Log Storage | Azure Log Analytics Workspace |
+| Programming Language | Python |
+| Query Language | Kusto Query Language (KQL) |
+| Data Source | Custom SSH Authentication Logs |
+
+---
+
+# Project Workflow
+
+```
+Resource Group
+      │
+      ▼
+Log Analytics Workspace
+      │
+      ▼
+Microsoft Sentinel
+      │
+      ▼
+Custom Log Ingestion
+      │
+      ▼
+Threat Hunting
+      │
+      ▼
+Detection Engineering
+      │
+      ▼
+Analytics Rule
+      │
+      ▼
+Investigation
+```
+
+---
+
+# Key Implementation Steps
+
+## Azure Deployment
+
+- Created Azure Resource Group
+- Configured Log Analytics Workspace
+- Enabled Microsoft Sentinel
+
+---
+
+## Log Ingestion
+
+- Uploaded custom SSH authentication logs
+- Validated successful data ingestion
+- Verified custom log table
+
+---
+
+## Threat Hunting
+
+Developed KQL queries to:
+
+- Search failed SSH authentications
+- Extract source IP addresses
+- Count failed login attempts
+- Identify suspicious IP addresses
+
+---
+
+## Detection Engineering
+
+Developed detection logic for:
+
+- Repeated failed authentication attempts
+- Brute-force attack detection
+- High-risk source IP identification
+
+---
+
+## Investigation
+
+Investigated suspicious activity by:
+
+- Reviewing authentication logs
+- Analyzing source IP addresses
+- Building event timelines
+- Assessing attack scope
+
+---
+
+## Analytics Rule
+
+Created a Scheduled Analytics Rule that:
+
+- Executes automatically
+- Detects brute-force activity
+- Generates security alerts
+- Supports SOC investigations
+
+---
+
+# Skills Demonstrated
+
+- Microsoft Sentinel
+- Azure Log Analytics
+- Azure Resource Management
+- Kusto Query Language (KQL)
+- Threat Hunting
+- Detection Engineering
+- Security Investigation
+- Analytics Rule Development
+- Log Analysis
+- Security Documentation
+
+---
+
+# Challenges Encountered
+
+During implementation, several technical challenges were encountered, including custom log ingestion validation and query refinement. These were resolved through troubleshooting, data validation, and iterative KQL development.
+
+These challenges provided practical experience in diagnosing telemetry issues and improving detection accuracy.
+
+---
+
+# Lessons Learned
+
+This project reinforced several important security engineering concepts:
+
+- Reliable detections begin with high-quality telemetry.
+- KQL is fundamental to Microsoft Sentinel operations.
+- Threat hunting supports the development of effective detections.
+- Detection engineering requires continuous tuning.
+- Clear documentation is essential for maintaining security operations.
+
+---
+
+# Conclusion
+
+This project demonstrates an end-to-end Microsoft Sentinel implementation, covering deployment, log ingestion, threat hunting, detection engineering, investigation, and analytics rule creation.
+
+The resulting handbook serves as both a technical reference and a portfolio project, showcasing practical experience with Microsoft Sentinel and Azure-based security operations.
