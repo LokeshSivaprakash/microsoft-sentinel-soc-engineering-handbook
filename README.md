@@ -126,13 +126,10 @@ docs/
 
 queries/
 
-diagrams/
-
 screenshots/
 
 reports/
 
-assets/
 ```
 
 ---
